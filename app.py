@@ -2,7 +2,6 @@
 import base64
 import io
 import os
-import time
 import streamlit as st
 from prompts import get_style_list, get_pose_list, get_outfit_list, get_expression_list, build_prompt, build_face_restore_prompt
 from image_utils import process_uploaded_image, image_to_bytes, get_raw_image_bytes
@@ -579,83 +578,29 @@ if st.button(
     )
     generator = GeminiProfileGenerator(api_key=GEMINI_API_KEY, model=MODEL_NAME)
 
-    # 생성 중 번갈아 표시할 멘트
-    _LOADING_MESSAGES = [
+    import random
+    _FUN_MESSAGES = [
         "🧑‍💻 영효님이 만들었다",
         "🙏 허접하더라도 이해해줘요",
-        "✨ AI가 열심히 그리는 중...",
-        "🎨 거의 다 됐어요!",
-        "📸 조금만 기다려주세요~",
     ]
-
-    def _run_with_messages(generate_fn, pass1_flag=None):
-        """생성 함수를 백그라운드 스레드에서 실행하면서 멘트를 번갈아 표시"""
-        import threading
-        result_holder = {"result": None, "error": None, "done": False}
-
-        def _worker():
-            try:
-                result_holder["result"] = generate_fn()
-            except Exception as e:
-                result_holder["error"] = e
-            finally:
-                result_holder["done"] = True
-
-        thread = threading.Thread(target=_worker)
-        thread.start()
-
-        # 2-Pass용 Pass 2 멘트
-        _PASS2_MESSAGES = [
-            "🔒 Pass 2 — 원본 얼굴 복원 중...",
-            "🧑‍💻 영효님이 만들었다",
-            "🙏 허접하더라도 이해해줘요",
-            "🎨 거의 다 됐어요!",
-        ]
-
-        msg_placeholder = st.empty()
-        idx = 0
-        while not result_holder["done"]:
-            # Pass 1 완료 후에는 Pass 2 멘트로 전환
-            if pass1_flag and pass1_flag.get("done"):
-                msgs = _PASS2_MESSAGES
-            else:
-                msgs = _LOADING_MESSAGES
-            msg_placeholder.markdown(
-                f'<div style="text-align:center; padding:2rem 0; font-size:1.3rem; font-weight:700; color:#6C63FF;">'
-                f'{msgs[idx % len(msgs)]}'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-            idx += 1
-            time.sleep(2.5)
-        msg_placeholder.empty()
-        thread.join()
-
-        if result_holder["error"]:
-            raise result_holder["error"]
-        return result_holder["result"]
+    _fun_msg = random.choice(_FUN_MESSAGES)
 
     if st.session_state.two_pass_mode:
         # ── 2-Pass 모드: Generate → Face Restore ──
         face_prompt = build_face_restore_prompt(st.session_state.selected_style, st.session_state.selected_expression)
         with st.status("2-Pass 생성 중...", expanded=True) as status:
+            st.markdown(
+                f'<div style="text-align:center; padding:1rem 0; font-size:1.2rem; font-weight:700; color:#6C63FF;">{_fun_msg}</div>',
+                unsafe_allow_html=True,
+            )
             st.write("🎨 **Pass 1** — 포즈 · 스타일 생성 중...")
             try:
-                # 백그라운드 스레드에서 st.write() 호출 금지 — 플래그만 세팅
-                pass1_flag = {"done": False}
-
-                def _on_pass1(img):
-                    pass1_flag["done"] = True
-
-                def _gen_two_pass():
-                    return generator.generate_two_pass_with_retry(
-                        raw_images=raw_images,
-                        style_prompt=prompt,
-                        face_restore_prompt=face_prompt,
-                        on_pass1_done=_on_pass1,
-                    )
-
-                final, pass1 = _run_with_messages(_gen_two_pass, pass1_flag=pass1_flag)
+                final, pass1 = generator.generate_two_pass_with_retry(
+                    raw_images=raw_images,
+                    style_prompt=prompt,
+                    face_restore_prompt=face_prompt,
+                    on_pass1_done=lambda img: None,
+                )
                 st.session_state.result_image = final
                 st.session_state.pass1_image = pass1
                 status.update(label="✅ 2-Pass 생성 완료!", state="complete")
@@ -665,16 +610,17 @@ if st.button(
     else:
         # ── 기존 1-Pass 모드 ──
         with st.status("AI가 프로필 사진을 만들고 있습니다...", expanded=True) as status:
+            st.markdown(
+                f'<div style="text-align:center; padding:1rem 0; font-size:1.2rem; font-weight:700; color:#6C63FF;">{_fun_msg}</div>',
+                unsafe_allow_html=True,
+            )
             st.write("📸 사진 분석 중...")
             st.write("🎨 스타일 적용 중...")
             try:
-                def _gen_one_pass():
-                    return generator.generate_with_retry(
-                        raw_images=raw_images,
-                        style_prompt=prompt,
-                    )
-
-                result = _run_with_messages(_gen_one_pass)
+                result = generator.generate_with_retry(
+                    raw_images=raw_images,
+                    style_prompt=prompt,
+                )
                 st.session_state.result_image = result
                 st.session_state.pass1_image = None
                 status.update(label="✅ 생성 완료!", state="complete")
