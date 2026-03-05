@@ -568,6 +568,8 @@ if st.button(
     type="primary",
     disabled=not can_generate,
 ):
+    import traceback
+
     prompt = build_prompt(
         st.session_state.selected_style,
         st.session_state.selected_pose,
@@ -578,21 +580,14 @@ if st.button(
     )
     generator = GeminiProfileGenerator(api_key=GEMINI_API_KEY, model=MODEL_NAME)
 
-    import random
-    _FUN_MESSAGES = [
-        "🧑‍💻 영효님이 만들었다",
-        "🙏 허접하더라도 이해해줘요",
-    ]
-    _fun_msg = random.choice(_FUN_MESSAGES)
+    # 디버그: API 키 로딩 확인
+    _key_preview = f"{GEMINI_API_KEY[:4]}...{GEMINI_API_KEY[-4:]}" if len(GEMINI_API_KEY) > 8 else "(empty or short)"
 
     if st.session_state.two_pass_mode:
         # ── 2-Pass 모드: Generate → Face Restore ──
         face_prompt = build_face_restore_prompt(st.session_state.selected_style, st.session_state.selected_expression)
         with st.status("2-Pass 생성 중...", expanded=True) as status:
-            st.markdown(
-                f'<div style="text-align:center; padding:1rem 0; font-size:1.2rem; font-weight:700; color:#6C63FF;">{_fun_msg}</div>',
-                unsafe_allow_html=True,
-            )
+            st.write(f"🔑 API 키: `{_key_preview}` / 모델: `{MODEL_NAME}`")
             st.write("🎨 **Pass 1** — 포즈 · 스타일 생성 중...")
             try:
                 final, pass1 = generator.generate_two_pass_with_retry(
@@ -607,13 +602,11 @@ if st.button(
             except Exception as e:
                 status.update(label="❌ 생성 실패", state="error")
                 st.error(f"생성 중 오류가 발생했습니다: {e}")
+                st.code(traceback.format_exc(), language="text")
     else:
         # ── 기존 1-Pass 모드 ──
         with st.status("AI가 프로필 사진을 만들고 있습니다...", expanded=True) as status:
-            st.markdown(
-                f'<div style="text-align:center; padding:1rem 0; font-size:1.2rem; font-weight:700; color:#6C63FF;">{_fun_msg}</div>',
-                unsafe_allow_html=True,
-            )
+            st.write(f"🔑 API 키: `{_key_preview}` / 모델: `{MODEL_NAME}`")
             st.write("📸 사진 분석 중...")
             st.write("🎨 스타일 적용 중...")
             try:
@@ -627,6 +620,7 @@ if st.button(
             except Exception as e:
                 status.update(label="❌ 생성 실패", state="error")
                 st.error(f"생성 중 오류가 발생했습니다: {e}")
+                st.code(traceback.format_exc(), language="text")
 
 if not user_images:
     st.caption("사진을 먼저 업로드해주세요.")
