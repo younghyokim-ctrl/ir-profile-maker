@@ -167,24 +167,7 @@ html, body, [class*="css"] {
     max-width: 100%;
 }
 
-/* ── 생성 버튼 커스텀 ── */
-div.stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #6C63FF 0%, #a78bfa 100%) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 12px !important;
-    padding: 0.85rem 2rem !important;
-    font-size: 1.1rem !important;
-    font-weight: 700 !important;
-    transition: all 0.25s !important;
-    box-shadow: 0 4px 15px rgba(108,99,255,0.3) !important;
-}
-div.stButton > button[kind="primary"]:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 25px rgba(108,99,255,0.4) !important;
-}
-
-/* ── 선택 버튼 스타일링 ── */
+/* ── 버튼 공통 (비선택 상태) ── */
 div.stButton > button {
     border-radius: 8px !important;
     font-size: 0.82rem !important;
@@ -199,20 +182,20 @@ div.stButton > button:hover {
     color: #6C63FF !important;
 }
 
-/* ── 선택된 버튼 (체크마크 포함) ── */
-.selected-btn button,
-.selected-btn > div > button,
-.selected-btn div[data-testid="stButton"] > button {
-    background: linear-gradient(135deg, #6C63FF, #a78bfa) !important;
+/* ── 선택된 버튼 + 생성 버튼 (type=primary) ── */
+div.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #6C63FF 0%, #a78bfa 100%) !important;
     color: #fff !important;
-    border-color: #6C63FF !important;
+    border: 1.5px solid #6C63FF !important;
     font-weight: 700 !important;
     box-shadow: 0 4px 12px rgba(108,99,255,0.3) !important;
+    transition: all 0.22s !important;
 }
-.selected-btn button:hover,
-.selected-btn > div > button:hover {
+div.stButton > button[kind="primary"]:hover {
     background: linear-gradient(135deg, #5b52e0, #9678f0) !important;
     color: #fff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 20px rgba(108,99,255,0.4) !important;
 }
 
 /* ── 다운로드 버튼 ── */
@@ -381,15 +364,13 @@ gender_cols = st.columns(2)
 for i, g in enumerate(GENDERS):
     with gender_cols[i]:
         is_selected = st.session_state.selected_gender == g["id"]
-        wrapper_class = "selected-btn" if is_selected else ""
         btn_label = f"✓ {g['icon']} {g['name_ko']}" if is_selected else f"{g['icon']} {g['name_ko']}"
-        st.markdown(f'<div class="{wrapper_class}">', unsafe_allow_html=True)
-        if st.button(btn_label, key=f"gender_{g['id']}", use_container_width=True):
+        btn_type = "primary" if is_selected else "secondary"
+        if st.button(btn_label, key=f"gender_{g['id']}", use_container_width=True, type=btn_type):
             if st.session_state.selected_gender != g["id"]:
                 st.session_state.selected_gender = g["id"]
                 st.session_state.selected_outfit = ""  # 성별 변경 시 의상 초기화
             st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
 if not st.session_state.selected_gender:
     st.markdown('<div class="info-box">💡 성별을 선택하면 의상 옵션이 표시됩니다.</div>', unsafe_allow_html=True)
@@ -423,12 +404,10 @@ for i, style in enumerate(styles):
             )
         # 버튼에 이름 + 설명 포함
         btn_label = f"✓ {style['name_ko']} · {style['desc']}" if is_selected else f"{style['name_ko']} · {style['desc']}"
-        wrapper_class = "selected-btn" if is_selected else ""
-        st.markdown(f'<div class="{wrapper_class}">', unsafe_allow_html=True)
-        if st.button(btn_label, key=f"style_{style['id']}", use_container_width=True):
+        btn_type = "primary" if is_selected else "secondary"
+        if st.button(btn_label, key=f"style_{style['id']}", use_container_width=True, type=btn_type):
             st.session_state.selected_style = style["id"]
             st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
@@ -456,13 +435,11 @@ if st.session_state.selected_gender:
         for j, outfit in enumerate(cat_outfits):
             with outfit_cols[j]:
                 is_selected = st.session_state.selected_outfit == outfit["id"]
-                wrapper_class = "selected-btn" if is_selected else ""
                 btn_label = f"✓ {outfit['name_ko']}" if is_selected else outfit["name_ko"]
-                st.markdown(f'<div class="{wrapper_class}">', unsafe_allow_html=True)
-                if st.button(btn_label, key=f"outfit_{outfit['id']}", use_container_width=True, help=outfit["desc"]):
+                btn_type = "primary" if is_selected else "secondary"
+                if st.button(btn_label, key=f"outfit_{outfit['id']}", use_container_width=True, type=btn_type, help=outfit["desc"]):
                     st.session_state.selected_outfit = outfit["id"]
                     st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
 else:
     st.markdown('<div class="info-box">💡 성별을 먼저 선택해주세요.</div>', unsafe_allow_html=True)
 
@@ -501,12 +478,10 @@ for row in range(2):
                 )
             # 버튼에 이름 + 설명 포함
             btn_label = f"✓ {pose['name_ko']} · {pose['desc']}" if is_selected else f"{pose['name_ko']} · {pose['desc']}"
-            wrapper_class = "selected-btn" if is_selected else ""
-            st.markdown(f'<div class="{wrapper_class}">', unsafe_allow_html=True)
-            if st.button(btn_label, key=f"pose_{pose['id']}", use_container_width=True):
+            btn_type = "primary" if is_selected else "secondary"
+            if st.button(btn_label, key=f"pose_{pose['id']}", use_container_width=True, type=btn_type):
                 st.session_state.selected_pose = pose["id"]
                 st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
@@ -526,12 +501,10 @@ for i, expr in enumerate(expressions):
     with expr_cols[i]:
         is_selected = st.session_state.selected_expression == expr["id"]
         btn_label = f"✓ {expr['icon']} {expr['name_ko']}" if is_selected else f"{expr['icon']} {expr['name_ko']}"
-        wrapper_class = "selected-btn" if is_selected else ""
-        st.markdown(f'<div class="{wrapper_class}">', unsafe_allow_html=True)
-        if st.button(btn_label, key=f"expr_{expr['id']}", use_container_width=True, help=expr["desc"]):
+        btn_type = "primary" if is_selected else "secondary"
+        if st.button(btn_label, key=f"expr_{expr['id']}", use_container_width=True, type=btn_type, help=expr["desc"]):
             st.session_state.selected_expression = expr["id"]
             st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
