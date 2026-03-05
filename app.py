@@ -2,6 +2,7 @@
 import base64
 import io
 import os
+import time
 import streamlit as st
 from prompts import get_style_list, get_pose_list, get_outfit_list, get_expression_list, build_prompt, build_face_restore_prompt
 from image_utils import process_uploaded_image, image_to_bytes, get_raw_image_bytes
@@ -199,11 +200,19 @@ div.stButton > button:hover {
 }
 
 /* ── 선택된 버튼 (체크마크 포함) ── */
-.selected-btn > div > button {
+.selected-btn button,
+.selected-btn > div > button,
+.selected-btn div[data-testid="stButton"] > button {
     background: linear-gradient(135deg, #6C63FF, #a78bfa) !important;
     color: #fff !important;
     border-color: #6C63FF !important;
     font-weight: 700 !important;
+    box-shadow: 0 4px 12px rgba(108,99,255,0.3) !important;
+}
+.selected-btn button:hover,
+.selected-btn > div > button:hover {
+    background: linear-gradient(135deg, #5b52e0, #9678f0) !important;
+    color: #fff !important;
 }
 
 /* ── 다운로드 버튼 ── */
@@ -597,6 +606,49 @@ if st.button(
     )
     generator = GeminiProfileGenerator(api_key=GEMINI_API_KEY, model=MODEL_NAME)
 
+    # 생성 중 번갈아 표시할 멘트
+    _LOADING_MESSAGES = [
+        "🧑‍💻 영효님이 만들었다",
+        "🙏 허접하더라도 이해해줘요",
+        "✨ AI가 열심히 그리는 중...",
+        "🎨 거의 다 됐어요!",
+        "📸 조금만 기다려주세요~",
+    ]
+
+    def _run_with_messages(generate_fn, status_label):
+        """생성 함수를 실행하면서 멘트를 번갈아 표시"""
+        import threading
+        result_holder = {"result": None, "error": None, "done": False}
+
+        def _worker():
+            try:
+                result_holder["result"] = generate_fn()
+            except Exception as e:
+                result_holder["error"] = e
+            finally:
+                result_holder["done"] = True
+
+        thread = threading.Thread(target=_worker)
+        thread.start()
+
+        msg_placeholder = st.empty()
+        idx = 0
+        while not result_holder["done"]:
+            msg_placeholder.markdown(
+                f'<div style="text-align:center; padding:2rem 0; font-size:1.3rem; font-weight:700; color:#6C63FF;">'
+                f'{_LOADING_MESSAGES[idx % len(_LOADING_MESSAGES)]}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            idx += 1
+            time.sleep(2.5)
+        msg_placeholder.empty()
+        thread.join()
+
+        if result_holder["error"]:
+            raise result_holder["error"]
+        return result_holder["result"]
+
     if st.session_state.two_pass_mode:
         # ── 2-Pass 모드: Generate → Face Restore ──
         face_prompt = build_face_restore_prompt(st.session_state.selected_style, st.session_state.selected_expression)
@@ -607,12 +659,15 @@ if st.button(
                     st.write("✅ Pass 1 완료! 포즈/스타일 적용됨")
                     st.write("🔒 **Pass 2** — 원본 얼굴 복원 중...")
 
-                final, pass1 = generator.generate_two_pass_with_retry(
-                    raw_images=raw_images,
-                    style_prompt=prompt,
-                    face_restore_prompt=face_prompt,
-                    on_pass1_done=_on_pass1,
-                )
+                def _gen_two_pass():
+                    return generator.generate_two_pass_with_retry(
+                        raw_images=raw_images,
+                        style_prompt=prompt,
+                        face_restore_prompt=face_prompt,
+                        on_pass1_done=_on_pass1,
+                    )
+
+                final, pass1 = _run_with_messages(_gen_two_pass, "2-Pass")
                 st.session_state.result_image = final
                 st.session_state.pass1_image = pass1
                 status.update(label="✅ 2-Pass 생성 완료!", state="complete")
@@ -625,10 +680,13 @@ if st.button(
             st.write("📸 사진 분석 중...")
             st.write("🎨 스타일 적용 중...")
             try:
-                result = generator.generate_with_retry(
-                    raw_images=raw_images,
-                    style_prompt=prompt,
-                )
+                def _gen_one_pass():
+                    return generator.generate_with_retry(
+                        raw_images=raw_images,
+                        style_prompt=prompt,
+                    )
+
+                result = _run_with_messages(_gen_one_pass, "1-Pass")
                 st.session_state.result_image = result
                 st.session_state.pass1_image = None
                 status.update(label="✅ 생성 완료!", state="complete")
