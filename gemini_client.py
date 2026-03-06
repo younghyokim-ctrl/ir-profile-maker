@@ -87,7 +87,22 @@ class GeminiProfileGenerator:
                 if part.inline_data and part.inline_data.mime_type.startswith("image/"):
                     return Image.open(io.BytesIO(part.inline_data.data))
 
-        raise RuntimeError("이미지 생성에 실패했습니다. 다른 사진으로 다시 시도해 주세요.")
+        # 디버그: 응답 상세 출력
+        debug_info = []
+        if hasattr(response, 'prompt_feedback'):
+            debug_info.append(f"prompt_feedback: {response.prompt_feedback}")
+        if response.candidates:
+            c = response.candidates[0]
+            if hasattr(c, 'finish_reason'):
+                debug_info.append(f"finish_reason: {c.finish_reason}")
+            if hasattr(c, 'safety_ratings'):
+                debug_info.append(f"safety_ratings: {c.safety_ratings}")
+            parts_info = [f"type={'image' if (p.inline_data and p.inline_data.mime_type.startswith('image/')) else 'text'}" for p in c.content.parts] if c.content and c.content.parts else ["no parts"]
+            debug_info.append(f"parts: {parts_info}")
+        else:
+            debug_info.append("no candidates in response")
+
+        raise RuntimeError(f"이미지 생성 실패. 응답 상세: {'; '.join(debug_info)}")
 
     # ── 2-Pass 파이프라인: Generate → Face Restore ──
 
@@ -156,7 +171,9 @@ class GeminiProfileGenerator:
                 if part.inline_data and part.inline_data.mime_type.startswith("image/"):
                     return Image.open(io.BytesIO(part.inline_data.data)), pass1_result
 
-        # Pass 2 실패 → Pass 1 결과만 반환
+        # Pass 2 실패 → Pass 1 결과만 반환 (에러 로그 출력)
+        import sys
+        print(f"[WARN] Pass 2 이미지 없음. candidates: {bool(response.candidates)}", file=sys.stderr)
         return pass1_result, pass1_result
 
     # ── 재시도 래퍼 ──
