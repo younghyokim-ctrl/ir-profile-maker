@@ -580,15 +580,16 @@ if st.button(
     )
     generator = GeminiProfileGenerator(api_key=GEMINI_API_KEY, model=MODEL_NAME)
 
-    # 디버그: API 키 로딩 확인
-    _key_preview = f"{GEMINI_API_KEY[:4]}...{GEMINI_API_KEY[-4:]}" if len(GEMINI_API_KEY) > 8 else "(empty or short)"
-
     if st.session_state.two_pass_mode:
         # ── 2-Pass 모드: Generate → Face Restore ──
         face_prompt = build_face_restore_prompt(st.session_state.selected_style, st.session_state.selected_expression)
-        with st.status("2-Pass 생성 중...", expanded=True) as status:
-            st.write(f"🔑 API 키: `{_key_preview}` / 모델: `{MODEL_NAME}`")
-            st.write("🎨 **Pass 1** — 포즈 · 스타일 생성 중...")
+        with st.status("AI가 프로필 사진을 만들고 있습니다...", expanded=True) as status:
+            st.markdown(
+                '<div style="text-align:center; padding:0.8rem 0; font-size:1.1rem; color:#6C63FF; font-weight:600;">'
+                '✨ 멋진 프로필 사진을 준비하고 있어요</div>',
+                unsafe_allow_html=True,
+            )
+            st.write("🎨 **Step 1/2** — 포즈 · 스타일 생성 중...")
             try:
                 final, pass1 = generator.generate_two_pass_with_retry(
                     raw_images=raw_images,
@@ -598,7 +599,7 @@ if st.button(
                 )
                 st.session_state.result_image = final
                 st.session_state.pass1_image = pass1
-                status.update(label="✅ 2-Pass 생성 완료!", state="complete")
+                status.update(label="✅ 프로필 사진 완성!", state="complete")
             except Exception as e:
                 status.update(label="❌ 생성 실패", state="error")
                 st.error(f"생성 중 오류가 발생했습니다: {e}")
@@ -606,7 +607,11 @@ if st.button(
     else:
         # ── 기존 1-Pass 모드 ──
         with st.status("AI가 프로필 사진을 만들고 있습니다...", expanded=True) as status:
-            st.write(f"🔑 API 키: `{_key_preview}` / 모델: `{MODEL_NAME}`")
+            st.markdown(
+                '<div style="text-align:center; padding:0.8rem 0; font-size:1.1rem; color:#6C63FF; font-weight:600;">'
+                '✨ 멋진 프로필 사진을 준비하고 있어요</div>',
+                unsafe_allow_html=True,
+            )
             st.write("📸 사진 분석 중...")
             st.write("🎨 스타일 적용 중...")
             try:
@@ -616,7 +621,7 @@ if st.button(
                 )
                 st.session_state.result_image = result
                 st.session_state.pass1_image = None
-                status.update(label="✅ 생성 완료!", state="complete")
+                status.update(label="✅ 프로필 사진 완성!", state="complete")
             except Exception as e:
                 status.update(label="❌ 생성 실패", state="error")
                 st.error(f"생성 중 오류가 발생했습니다: {e}")
