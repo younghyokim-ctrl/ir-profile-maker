@@ -306,7 +306,7 @@ poses = get_pose_list()
 st.markdown("""
 <div class="header-area">
     <h1>📸 프로필 사진 메이커</h1>
-    <p>AI가 만들어주는 IR용 프로필 사진</p>
+    <p>AI가 만들어주는 프로필 사진</p>
 </div>
 """, unsafe_allow_html=True)
 
