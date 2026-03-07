@@ -2,10 +2,21 @@
 from __future__ import annotations
 
 import io
+import os
 
 from PIL import Image
 
 from config import MAX_LONG_EDGE
+
+# 확장자 → MIME type 매핑 (Streamlit이 MIME을 잘못 감지할 때 fallback)
+_EXT_TO_MIME = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".heic": "image/heic",
+    ".heif": "image/heif",
+}
 
 # pillow-heif가 설치되어 있으면 등록
 try:
@@ -28,7 +39,13 @@ def get_raw_image_bytes(uploaded_file) -> tuple:
         (raw_bytes, mime_type) 튜플
     """
     raw_bytes = uploaded_file.getvalue()
-    mime_type = uploaded_file.type or "image/png"
+    mime_type = uploaded_file.type or ""
+
+    # Streamlit Cloud에서 MIME이 application/octet-stream 등 비정상일 때
+    # → 파일 확장자로 MIME 추론
+    if not mime_type.startswith("image/"):
+        ext = os.path.splitext(uploaded_file.name)[1].lower() if uploaded_file.name else ""
+        mime_type = _EXT_TO_MIME.get(ext, "image/jpeg")  # 최종 fallback: JPEG
 
     # HEIC/HEIF → JPEG 변환 (Gemini API 호환성)
     if "heic" in mime_type.lower() or "heif" in mime_type.lower():
