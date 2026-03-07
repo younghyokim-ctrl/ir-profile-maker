@@ -213,6 +213,11 @@ div.stDownloadButton > button:hover {
     transform: translateY(-1px) !important;
 }
 
+/* ── 체크박스 라벨 ── */
+div.stCheckbox label p, div.stCheckbox label span {
+    color: #1f2937 !important;
+}
+
 /* ── 구분선 ── */
 .section-divider {
     border: none;
