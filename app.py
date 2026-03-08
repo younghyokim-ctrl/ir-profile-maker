@@ -218,10 +218,16 @@ div.stCheckbox label p, div.stCheckbox label span {
     color: #1f2937 !important;
 }
 
-/* ── st.status / st.write 텍스트 ── */
-div[data-testid="stStatusWidget"] p,
-div[data-testid="stStatusWidget"] span,
-div[data-testid="stStatusWidget"] div,
+/* ── st.status 헤더 (어두운 배경 → 흰 글씨) ── */
+div[data-testid="stStatusWidget"] > summary,
+div[data-testid="stStatusWidget"] > summary p,
+div[data-testid="stStatusWidget"] > summary span,
+div[data-testid="stStatusWidget"] > summary div {
+    color: #ffffff !important;
+}
+/* ── st.status 내부 콘텐츠 (밝은 배경 → 어두운 글씨) ── */
+div[data-testid="stStatusWidget"] div[data-testid="stMarkdownContainer"] p,
+div[data-testid="stStatusWidget"] div[data-testid="stMarkdownContainer"] span,
 div[data-testid="stExpander"] p,
 div[data-testid="stExpander"] span {
     color: #1f2937 !important;

@@ -949,13 +949,20 @@ def build_json_prompt(
         hs_prompt = hs_data.get("prompt", "")
         if hs_prompt:
             prompt_dict["hairstyle_change"] = {
+                "priority": "HIGH — this overrides any hair preservation instructions",
                 "instruction": hs_prompt,
                 "color": "keep original hair color unchanged",
             }
+            # subject.description에서 "hairstyle" 보존 문구 제거 (모순 방지)
+            prompt_dict["subject"]["description"] = (
+                "Study all reference photos carefully. "
+                "Preserve exact facial features, face shape, skin tone, glasses style. "
+                "IMPORTANT: Change the hairstyle as described in hairstyle_change section."
+            )
             # face_preservation.hair를 머리스타일 변경 허용으로 교체
             prompt_dict["face_preservation"]["hair"] = (
-                "HAIRSTYLE CHANGE ALLOWED — apply the hairstyle described in hairstyle_change. "
-                "Keep original hair COLOR unchanged."
+                "HAIRSTYLE CHANGE REQUIRED — apply the hairstyle described in hairstyle_change. "
+                "Keep original hair COLOR unchanged. Do NOT preserve original hairstyle."
             )
             # negative에서 hair change 제거
             prompt_dict["negative"] = [n for n in prompt_dict["negative"] if "hair change" not in n]
