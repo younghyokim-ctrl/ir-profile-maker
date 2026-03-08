@@ -218,6 +218,17 @@ div.stCheckbox label p, div.stCheckbox label span {
     color: #1f2937 !important;
 }
 
+/* ── 라디오 버튼 라벨 ── */
+div.stRadio label, div.stRadio label p, div.stRadio label span,
+div.stRadio div[role="radiogroup"] label p,
+div.stRadio div[role="radiogroup"] label span,
+div.stRadio > label > div > p {
+    color: #1f2937 !important;
+}
+div.stRadio > label > div {
+    color: #1f2937 !important;
+}
+
 /* ── 구분선 ── */
 .section-divider {
     border: none;
@@ -290,7 +301,7 @@ if "selected_expression" not in st.session_state:
 if "result_image" not in st.session_state:
     st.session_state.result_image = None
 if "prompt_mode" not in st.session_state:
-    st.session_state.prompt_mode = "text"
+    st.session_state.prompt_mode = "json"
 
 # ──────────────────────────────────────────────
 # 데이터 로드
