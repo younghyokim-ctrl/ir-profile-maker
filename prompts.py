@@ -524,7 +524,11 @@ EXPRESSIONS = {
             "EXPRESSION: The person should have a NATURAL, WARM, GENUINE SMILE clearly showing teeth. "
             "The mouth is open with a relaxed, confident smile — upper teeth clearly visible, lips "
             "naturally parted in a comfortable width. The smile should reach the eyes (Duchenne smile) "
-            "— slight natural crow's feet crinkles at the outer eye corners, cheeks gently raised. "
+            "— cheeks gently raised with subtle warmth in the eyes. "
+            "WRINKLE CONTROL (CRITICAL): MINIMIZE crow's feet and wrinkles around the eyes. "
+            "The eye area must remain SMOOTH and YOUTHFUL — do NOT add deep creases, lines, or "
+            "heavy crow's feet at the outer eye corners. Only the slightest hint of natural eye "
+            "engagement is allowed, but the skin around the eyes should stay clean and unwrinkled. "
             "The smile must look authentic, spontaneous, and effortless — NOT forced, NOT stiff, "
             "NOT overly exaggerated or unnaturally wide. Keep the smile balanced and symmetrical. "
             "IMPORTANT: Despite the smile, preserve the person's original facial bone structure, "
@@ -532,6 +536,93 @@ EXPRESSIONS = {
             "and CHEEK MUSCLES should change to form the smile. The person must remain immediately "
             "recognizable as the same individual. "
         ),
+    },
+}
+
+
+# ─── 머리스타일 프리셋 ─────────────────────────────────────────
+HAIRSTYLES = {
+    "male": {
+        "original": {
+            "name_ko": "원본 유지",
+            "desc": "원본 사진의 머리스타일을 그대로 유지",
+            "icon": "📸",
+            "prompt": "",
+        },
+        "side_part": {
+            "name_ko": "사이드파트",
+            "desc": "깔끔한 옆가르마 — 비즈니스 기본",
+            "icon": "💇‍♂️",
+            "prompt": (
+                "HAIRSTYLE: Change the person's hairstyle to a clean SIDE PART — hair neatly "
+                "combed to one side with a defined parting line. The hair is well-groomed, "
+                "slightly tapered on the sides, with a polished professional look. "
+                "Keep the original hair COLOR and general TEXTURE unchanged. "
+            ),
+        },
+        "two_block": {
+            "name_ko": "투블럭",
+            "desc": "옆·뒤 짧게 + 윗머리 볼륨 — 모던 스타일",
+            "icon": "✂️",
+            "prompt": (
+                "HAIRSTYLE: Change the person's hairstyle to a modern TWO-BLOCK CUT — sides "
+                "and back are trimmed short and clean, while the top hair has natural volume "
+                "and length, styled loosely upward or slightly to the side. A contemporary "
+                "Korean men's hairstyle. Keep the original hair COLOR unchanged. "
+            ),
+        },
+        "slick_back": {
+            "name_ko": "올백",
+            "desc": "전체 뒤로 넘긴 올백 — 클래식 포멀",
+            "icon": "🪮",
+            "prompt": (
+                "HAIRSTYLE: Change the person's hairstyle to a SLICKED BACK style — all hair "
+                "combed neatly backward off the forehead. The hair lies flat and smooth with "
+                "a polished, classic executive look. No parting line visible. "
+                "Keep the original hair COLOR unchanged. "
+            ),
+        },
+    },
+    "female": {
+        "original": {
+            "name_ko": "원본 유지",
+            "desc": "원본 사진의 머리스타일을 그대로 유지",
+            "icon": "📸",
+            "prompt": "",
+        },
+        "short_bob": {
+            "name_ko": "단발",
+            "desc": "턱선 길이 깔끔한 단발 — 프로페셔널",
+            "icon": "💇‍♀️",
+            "prompt": (
+                "HAIRSTYLE: Change the person's hairstyle to a clean SHORT BOB — hair cut "
+                "to jaw-length with a neat, straight line. The hair falls naturally with a "
+                "slight inward curve at the ends. Polished, professional, and modern. "
+                "Keep the original hair COLOR unchanged. "
+            ),
+        },
+        "long_wave": {
+            "name_ko": "긴 웨이브",
+            "desc": "어깨 아래 자연스러운 웨이브 — 소프트",
+            "icon": "🌊",
+            "prompt": (
+                "HAIRSTYLE: Change the person's hairstyle to LONG WAVY HAIR — past the "
+                "shoulders with soft, natural waves. The waves are loose and effortless, "
+                "giving a gentle and approachable look. Hair may be parted in the center "
+                "or slightly to one side. Keep the original hair COLOR unchanged. "
+            ),
+        },
+        "updo": {
+            "name_ko": "묶은 머리",
+            "desc": "깔끔하게 뒤로 묶은 포니테일/번 — 단정",
+            "icon": "💫",
+            "prompt": (
+                "HAIRSTYLE: Change the person's hairstyle to a neat UPDO — hair pulled back "
+                "and secured in a clean low ponytail or low bun at the nape of the neck. "
+                "The front is smooth with no stray hairs. A polished, professional, and "
+                "tidy look. Keep the original hair COLOR unchanged. "
+            ),
+        },
     },
 }
 
@@ -596,6 +687,15 @@ def get_outfit_list(gender: str):
     ]
 
 
+def get_hairstyle_list(gender: str):
+    """성별에 따른 머리스타일 메타데이터 리스트 반환 (UI용)"""
+    hairstyles = HAIRSTYLES.get(gender, {})
+    return [
+        {"id": k, "name_ko": v["name_ko"], "desc": v["desc"], "icon": v["icon"]}
+        for k, v in hairstyles.items()
+    ]
+
+
 def get_style_list():
     """스타일 메타데이터 리스트 반환 (UI용)"""
     return [
@@ -620,14 +720,16 @@ def build_prompt(
     gender: str = "",
     outfit: str = "",
     expression: str = "",
+    hairstyle: str = "",
     num_images: int = 1,
 ) -> str:
-    """스타일 + 포즈 + 의상 + 표정 프롬프트 조합 (SKILL.md 동기화)
+    """스타일 + 포즈 + 의상 + 표정 + 머리스타일 프롬프트 조합 (SKILL.md 동기화)
 
     조합 규칙:
     - 정면: [프리픽스] + [스타일(OUTFIT 치환)] + [서픽스]
     - 기타: [프리픽스] + [스타일 전반부(OUTFIT 치환)] + [포즈] + [품질tail] + [서픽스]
     - 표정: neutral=기존유지, smile=EXPRESSION 블록 교체
+    - 머리스타일: original=기존유지(HAIR 프롬프트 그대로), 기타=HAIR 블록 교체
     """
     style_prompt = STYLES[style]["prompt"]
     pose_prompt = POSES[pose]["prompt"]
@@ -680,7 +782,28 @@ def build_prompt(
                 continue
         core = core[:expr_start] + expr_prompt + core[next_section:]
 
-    # === 5. 멀티이미지 프리픽스/서픽스 ===
+    # === 5. 머리스타일 오버라이드 ===
+    hairstyle_prompt = ""
+    if hairstyle and hairstyle != "original":
+        gender_key = gender if gender in HAIRSTYLES else "male"
+        hs_data = HAIRSTYLES[gender_key].get(hairstyle, {})
+        hairstyle_prompt = hs_data.get("prompt", "")
+    if hairstyle_prompt and "HAIR (CRITICAL):" in core:
+        # "HAIR (CRITICAL): ..." 블록을 머리스타일 프롬프트로 교체
+        hair_start = core.index("HAIR (CRITICAL):")
+        # HAIR 블록 끝 = 다음 섹션 또는 "The final result" 또는 "CRITICAL FRAMING"
+        search_after_hair = hair_start + len("HAIR (CRITICAL):")
+        hair_end = len(core)
+        for hair_marker in ["The final result must be IMMEDIATELY", "CRITICAL FRAMING:", "FRAMING:"]:
+            try:
+                idx = core.index(hair_marker, search_after_hair)
+                if idx < hair_end:
+                    hair_end = idx
+            except ValueError:
+                continue
+        core = core[:hair_start] + hairstyle_prompt + core[hair_end:]
+
+    # === 6. 멀티이미지 프리픽스/서픽스 ===
     # 실제 2~3장 업로드: "Study all reference photos..." 프리픽스 적용
     # 1장 업로드(API에서 2장 복제): 프리픽스/서픽스 없이 core만 사용
     # (동일 정면 사진 2장의 "Study both photos from these angles"는 포즈 회전을 무시하게 만듦)
@@ -725,6 +848,7 @@ def build_json_prompt(
     gender: str = "",
     outfit: str = "",
     expression: str = "",
+    hairstyle: str = "",
     num_images: int = 1,
 ) -> str:
     """JSON 구조화 프롬프트 반환 — build_prompt()와 공유 로직 없음.
@@ -810,6 +934,24 @@ def build_json_prompt(
             "sharpness": "crisp sharp focus",
         },
     }
+
+    # 머리스타일 오버라이드
+    if hairstyle and hairstyle != "original":
+        gender_key = gender if gender in HAIRSTYLES else "male"
+        hs_data = HAIRSTYLES[gender_key].get(hairstyle, {})
+        hs_prompt = hs_data.get("prompt", "")
+        if hs_prompt:
+            prompt_dict["hairstyle_change"] = {
+                "instruction": hs_prompt,
+                "color": "keep original hair color unchanged",
+            }
+            # face_preservation.hair를 머리스타일 변경 허용으로 교체
+            prompt_dict["face_preservation"]["hair"] = (
+                "HAIRSTYLE CHANGE ALLOWED — apply the hairstyle described in hairstyle_change. "
+                "Keep original hair COLOR unchanged."
+            )
+            # negative에서 hair change 제거
+            prompt_dict["negative"] = [n for n in prompt_dict["negative"] if "hair change" not in n]
 
     # film_stock이 있으면 추가
     if meta.get("film_stock"):

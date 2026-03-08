@@ -3,7 +3,7 @@ import base64
 import io
 import os
 import streamlit as st
-from prompts import get_style_list, get_pose_list, get_outfit_list, get_expression_list, build_prompt, build_json_prompt
+from prompts import get_style_list, get_pose_list, get_outfit_list, get_expression_list, get_hairstyle_list, build_prompt, build_json_prompt
 from image_utils import process_uploaded_image, image_to_bytes, get_raw_image_bytes
 from gemini_client import GeminiProfileGenerator
 from config import GEMINI_API_KEY, MODEL_NAME, THUMBNAIL_DIR
@@ -300,6 +300,8 @@ if "selected_expression" not in st.session_state:
     st.session_state.selected_expression = "neutral"
 if "result_image" not in st.session_state:
     st.session_state.result_image = None
+if "selected_hairstyle" not in st.session_state:
+    st.session_state.selected_hairstyle = "original"
 if "prompt_mode" not in st.session_state:
     st.session_state.prompt_mode = "json"
 
@@ -499,11 +501,37 @@ for row in range(2):
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════
-# STEP 6 — 표정 선택
+# STEP 6 — 머리스타일 선택
 # ══════════════════════════════════════════════
 st.markdown("""
 <div class="step-badge">
     <span class="step-num">6</span>
+    <span class="step-title">머리스타일 선택</span>
+</div>
+""", unsafe_allow_html=True)
+
+if st.session_state.selected_gender:
+    hairstyles = get_hairstyle_list(st.session_state.selected_gender)
+    hs_cols = st.columns(len(hairstyles))
+    for i, hs in enumerate(hairstyles):
+        with hs_cols[i]:
+            is_selected = st.session_state.selected_hairstyle == hs["id"]
+            btn_label = f"✓ {hs['icon']} {hs['name_ko']}" if is_selected else f"{hs['icon']} {hs['name_ko']}"
+            btn_type = "primary" if is_selected else "secondary"
+            if st.button(btn_label, key=f"hs_{hs['id']}", use_container_width=True, type=btn_type, help=hs["desc"]):
+                st.session_state.selected_hairstyle = hs["id"]
+                st.rerun()
+else:
+    st.markdown('<div class="info-box">💡 성별을 먼저 선택해주세요.</div>', unsafe_allow_html=True)
+
+st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════
+# STEP 7 — 표정 선택
+# ══════════════════════════════════════════════
+st.markdown("""
+<div class="step-badge">
+    <span class="step-num">7</span>
     <span class="step-title">표정 선택</span>
 </div>
 """, unsafe_allow_html=True)
@@ -522,11 +550,11 @@ for i, expr in enumerate(expressions):
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════
-# STEP 7 — 생성
+# STEP 8 — 생성
 # ══════════════════════════════════════════════
 st.markdown("""
 <div class="step-badge">
-    <span class="step-num">7</span>
+    <span class="step-num">8</span>
     <span class="step-title">프로필 사진 생성</span>
 </div>
 """, unsafe_allow_html=True)
@@ -550,12 +578,21 @@ _expr_list = get_expression_list()
 _expr_obj = next((e for e in _expr_list if e["id"] == st.session_state.selected_expression), _expr_list[0])
 _expr_label = f"{_expr_obj['icon']} {_expr_obj['name_ko']}"
 
+# 머리스타일 라벨
+_hs_label = "원본 유지"
+if st.session_state.selected_gender:
+    _hs_list = get_hairstyle_list(st.session_state.selected_gender)
+    _hs_obj = next((h for h in _hs_list if h["id"] == st.session_state.selected_hairstyle), None)
+    if _hs_obj:
+        _hs_label = f"{_hs_obj['icon']} {_hs_obj['name_ko']}"
+
 st.markdown(f"""
 <div class="info-box">
     🧑 <strong>{_gender_label}</strong> &nbsp;·&nbsp;
     🎨 <strong>{selected_style_obj["name_ko"]}</strong> 스타일 &nbsp;·&nbsp;
     👔 <strong>{_outfit_label}</strong> 의상 &nbsp;·&nbsp;
     🧍 <strong>{selected_pose_obj["name_ko"]}</strong> 포즈 &nbsp;·&nbsp;
+    💇 <strong>{_hs_label}</strong> 머리 &nbsp;·&nbsp;
     {_expr_label} 표정 &nbsp;·&nbsp;
     📸 사진 {len(user_images)}장
 </div>
@@ -595,6 +632,7 @@ if st.button(
             gender=st.session_state.selected_gender,
             outfit=st.session_state.selected_outfit,
             expression=st.session_state.selected_expression,
+            hairstyle=st.session_state.selected_hairstyle,
             num_images=len(user_images),
         )
     else:
@@ -604,6 +642,7 @@ if st.button(
             gender=st.session_state.selected_gender,
             outfit=st.session_state.selected_outfit,
             expression=st.session_state.selected_expression,
+            hairstyle=st.session_state.selected_hairstyle,
             num_images=len(user_images),
         )
 
