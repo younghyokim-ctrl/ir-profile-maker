@@ -229,6 +229,15 @@ div.stRadio > label > div {
     color: #1f2937 !important;
 }
 
+/* ── st.status / st.write 텍스트 ── */
+div[data-testid="stStatusWidget"] p,
+div[data-testid="stStatusWidget"] span,
+div[data-testid="stStatusWidget"] div,
+div[data-testid="stExpander"] p,
+div[data-testid="stExpander"] span {
+    color: #1f2937 !important;
+}
+
 /* ── 구분선 ── */
 .section-divider {
     border: none;
