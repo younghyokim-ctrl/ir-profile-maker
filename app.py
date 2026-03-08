@@ -3,7 +3,7 @@ import base64
 import io
 import os
 import streamlit as st
-from prompts import get_style_list, get_pose_list, get_outfit_list, get_expression_list, get_hairstyle_list, build_prompt, build_json_prompt
+from prompts import get_style_list, get_pose_list, get_outfit_list, get_expression_list, get_hairstyle_list, build_json_prompt
 from image_utils import process_uploaded_image, image_to_bytes, get_raw_image_bytes
 from gemini_client import GeminiProfileGenerator
 from config import GEMINI_API_KEY, MODEL_NAME, THUMBNAIL_DIR
@@ -218,17 +218,6 @@ div.stCheckbox label p, div.stCheckbox label span {
     color: #1f2937 !important;
 }
 
-/* ── 라디오 버튼 라벨 ── */
-div.stRadio label, div.stRadio label p, div.stRadio label span,
-div.stRadio div[role="radiogroup"] label p,
-div.stRadio div[role="radiogroup"] label span,
-div.stRadio > label > div > p {
-    color: #1f2937 !important;
-}
-div.stRadio > label > div {
-    color: #1f2937 !important;
-}
-
 /* ── st.status / st.write 텍스트 ── */
 div[data-testid="stStatusWidget"] p,
 div[data-testid="stStatusWidget"] span,
@@ -311,8 +300,6 @@ if "result_image" not in st.session_state:
     st.session_state.result_image = None
 if "selected_hairstyle" not in st.session_state:
     st.session_state.selected_hairstyle = "original"
-if "prompt_mode" not in st.session_state:
-    st.session_state.prompt_mode = "json"
 
 # ──────────────────────────────────────────────
 # 데이터 로드
@@ -607,17 +594,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 프롬프트 모드 토글 (텍스트 / JSON)
-prompt_mode = st.radio(
-    "🔧 프롬프트 모드",
-    options=["text", "json"],
-    format_func=lambda x: "📝 텍스트 (기존)" if x == "text" else "🧩 JSON (구조화)",
-    index=0 if st.session_state.prompt_mode == "text" else 1,
-    horizontal=True,
-    help="텍스트: 기존 검증된 자연어 프롬프트 | JSON: 구조화된 JSON 프롬프트 (실험적)",
-)
-st.session_state.prompt_mode = prompt_mode
-
 # API 키 확인
 if not GEMINI_API_KEY:
     st.markdown('<div class="warn-box">⚠️ Gemini API 키가 설정되지 않았습니다. <code>.env</code> 파일에 GEMINI_API_KEY를 추가해주세요.</div>', unsafe_allow_html=True)
@@ -633,27 +609,15 @@ if st.button(
 ):
     import traceback
 
-    # 프롬프트 모드에 따라 프롬프트 빌드
-    if st.session_state.prompt_mode == "json":
-        prompt = build_json_prompt(
-            st.session_state.selected_style,
-            st.session_state.selected_pose,
-            gender=st.session_state.selected_gender,
-            outfit=st.session_state.selected_outfit,
-            expression=st.session_state.selected_expression,
-            hairstyle=st.session_state.selected_hairstyle,
-            num_images=len(user_images),
-        )
-    else:
-        prompt = build_prompt(
-            st.session_state.selected_style,
-            st.session_state.selected_pose,
-            gender=st.session_state.selected_gender,
-            outfit=st.session_state.selected_outfit,
-            expression=st.session_state.selected_expression,
-            hairstyle=st.session_state.selected_hairstyle,
-            num_images=len(user_images),
-        )
+    prompt = build_json_prompt(
+        st.session_state.selected_style,
+        st.session_state.selected_pose,
+        gender=st.session_state.selected_gender,
+        outfit=st.session_state.selected_outfit,
+        expression=st.session_state.selected_expression,
+        hairstyle=st.session_state.selected_hairstyle,
+        num_images=len(user_images),
+    )
 
     generator = GeminiProfileGenerator(api_key=GEMINI_API_KEY, model=MODEL_NAME)
 
@@ -663,8 +627,7 @@ if st.button(
             '✨ 멋진 프로필 사진을 준비하고 있어요</div>',
             unsafe_allow_html=True,
         )
-        mode_label = "🧩 JSON 모드" if st.session_state.prompt_mode == "json" else "📝 텍스트 모드"
-        st.write(f"📸 사진 분석 중... ({mode_label})")
+        st.write("📸 사진 분석 중...")
         st.write("🎨 스타일 적용 중...")
         try:
             result = generator.generate_with_retry(

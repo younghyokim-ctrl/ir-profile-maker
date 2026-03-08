@@ -370,11 +370,13 @@ OUTFITS = {
         },
         "biz_casual": {
             "name_ko": "비즈캐주얼",
-            "desc": "모크넥 니트 폴로 · 미니멀",
+            "desc": "크루넥 니트 · 미니멀",
             "category": "비즈니스",
             "prompt": (
-                "Dress the person in a clean fitted mock-neck knit polo in muted cream or soft "
-                "gray — no collar, no tie, modern minimal smart-casual with clean lines."
+                "Dress the person in a clean fitted crew-neck knit sweater in muted cream or soft "
+                "gray — simple round neckline, no collar, no tie, no inner shirt visible, "
+                "modern minimal smart-casual with clean lines. Do NOT add a turtleneck or "
+                "mock-neck underneath."
             ),
         },
         "black_turtleneck": {
@@ -525,10 +527,11 @@ EXPRESSIONS = {
             "The mouth is open with a relaxed, confident smile — upper teeth clearly visible, lips "
             "naturally parted in a comfortable width. The smile should reach the eyes (Duchenne smile) "
             "— cheeks gently raised with subtle warmth in the eyes. "
-            "WRINKLE CONTROL (CRITICAL): MINIMIZE crow's feet and wrinkles around the eyes. "
-            "The eye area must remain SMOOTH and YOUTHFUL — do NOT add deep creases, lines, or "
-            "heavy crow's feet at the outer eye corners. Only the slightest hint of natural eye "
-            "engagement is allowed, but the skin around the eyes should stay clean and unwrinkled. "
+            "WRINKLE CONTROL (ABSOLUTE CRITICAL): COMPLETELY ELIMINATE all crow's feet, wrinkles, "
+            "and fine lines around the eyes. The eye area must be PERFECTLY SMOOTH and YOUTHFUL — "
+            "ZERO creases, ZERO lines, ZERO crow's feet at the outer eye corners. "
+            "The skin around the eyes must look as smooth as a young person in their 20s. "
+            "Even subtle wrinkles are NOT acceptable — smooth them all out completely. "
             "The smile must look authentic, spontaneous, and effortless — NOT forced, NOT stiff, "
             "NOT overly exaggerated or unnaturally wide. Keep the smile balanced and symmetrical. "
             "IMPORTANT: Despite the smile, preserve the person's original facial bone structure, "
@@ -569,6 +572,8 @@ HAIRSTYLES = {
                 "and back are trimmed short and clean, while the top hair has natural volume "
                 "and length, styled loosely upward or slightly to the side. A contemporary "
                 "Korean men's hairstyle. Keep the original hair COLOR unchanged. "
+                "FOREHEAD: Do NOT make the forehead appear excessively wide or tall. "
+                "Keep natural hairline position — hair should frame the forehead naturally. "
             ),
         },
         "slick_back": {
@@ -580,6 +585,8 @@ HAIRSTYLES = {
                 "combed neatly backward off the forehead. The hair lies flat and smooth with "
                 "a polished, classic executive look. No parting line visible. "
                 "Keep the original hair COLOR unchanged. "
+                "FOREHEAD: Do NOT make the forehead appear excessively wide or tall. "
+                "Keep natural hairline position — hair should frame the forehead naturally. "
             ),
         },
     },
