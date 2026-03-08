@@ -104,78 +104,6 @@ class GeminiProfileGenerator:
 
         raise RuntimeError(f"이미지 생성 실패. 응답 상세: {'; '.join(debug_info)}")
 
-    # ── 2-Pass 파이프라인: Generate → Face Restore ──
-
-    def generate_two_pass(
-        self,
-        raw_images: list,
-        style_prompt: str,
-        face_restore_prompt: str,
-        on_pass1_done=None,
-    ) -> tuple:
-        """2-Pass 파이프라인: 포즈 생성 → 얼굴 복원
-
-        Returns: (final_image, pass1_image)
-        """
-        # === Pass 1: 포즈/스타일 생성 (얼굴 변형 감수) ===
-        pass1_result = self.generate(raw_images, style_prompt)
-
-        if on_pass1_done:
-            on_pass1_done(pass1_result)
-
-        # Pass 1 결과를 bytes로 변환
-        buf = io.BytesIO()
-        pass1_result.save(buf, format="PNG")
-        pass1_bytes = buf.getvalue()
-
-        # === Pass 2: Pass1 결과(수정대상) + 원본(참조) → 얼굴 보정 ===
-        # 순서 핵심: Photo 1 = Pass1 결과(편집 대상), Photo 2 = 원본(얼굴 참조)
-        # → Gemini가 "Photo 1을 수정한다" 의도로 인식 → 포즈/배경 유지 + 얼굴만 교정
-        contents = []
-        # Photo 1: Pass 1 결과 (수정 대상 — 포즈/배경/의상 유지)
-        contents.append(types.Part.from_bytes(data=pass1_bytes, mime_type="image/png"))
-        # Photo 2: 원본 사진 (얼굴 참조 소스)
-        orig_data, orig_mime = raw_images[0]
-        contents.append(types.Part.from_bytes(data=orig_data, mime_type=orig_mime))
-        # grounding + 프롬프트
-        contents.append(
-            "Use real-world knowledge and current information to create "
-            "accurate, detailed images."
-        )
-        contents.append(face_restore_prompt)
-
-        try:
-            config = types.GenerateContentConfig(
-                response_modalities=["TEXT", "IMAGE"],
-                http_options=types.HttpOptions(
-                    extra_body={
-                        "generationConfig": {
-                            "imageConfig": {"imageSize": "4K"}
-                        }
-                    }
-                ),
-            )
-        except (TypeError, AttributeError):
-            config = types.GenerateContentConfig(
-                response_modalities=["TEXT", "IMAGE"],
-            )
-
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=contents,
-            config=config,
-        )
-
-        if response.candidates:
-            for part in response.candidates[0].content.parts:
-                if part.inline_data and part.inline_data.mime_type.startswith("image/"):
-                    return Image.open(io.BytesIO(part.inline_data.data)), pass1_result
-
-        # Pass 2 실패 → Pass 1 결과만 반환 (에러 로그 출력)
-        import sys
-        print(f"[WARN] Pass 2 이미지 없음. candidates: {bool(response.candidates)}", file=sys.stderr)
-        return pass1_result, pass1_result
-
     # ── 재시도 래퍼 ──
 
     def generate_with_retry(
@@ -194,18 +122,3 @@ class GeminiProfileGenerator:
             f"생성 실패 ({max_retries + 1}회 시도): {last_error}"
         )
 
-    def generate_two_pass_with_retry(
-        self, *args, max_retries: int = 1, **kwargs
-    ) -> tuple:
-        """재시도 포함 2-Pass 생성"""
-        last_error = None
-        for attempt in range(max_retries + 1):
-            try:
-                return self.generate_two_pass(*args, **kwargs)
-            except Exception as e:
-                last_error = e
-                if attempt < max_retries:
-                    time.sleep(3 * (attempt + 1))
-        raise RuntimeError(
-            f"2-Pass 생성 실패 ({max_retries + 1}회 시도): {last_error}"
-        )

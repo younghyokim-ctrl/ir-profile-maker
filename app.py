@@ -3,7 +3,7 @@ import base64
 import io
 import os
 import streamlit as st
-from prompts import get_style_list, get_pose_list, get_outfit_list, get_expression_list, build_prompt, build_face_restore_prompt
+from prompts import get_style_list, get_pose_list, get_outfit_list, get_expression_list, build_prompt, build_json_prompt
 from image_utils import process_uploaded_image, image_to_bytes, get_raw_image_bytes
 from gemini_client import GeminiProfileGenerator
 from config import GEMINI_API_KEY, MODEL_NAME, THUMBNAIL_DIR
@@ -289,10 +289,8 @@ if "selected_expression" not in st.session_state:
     st.session_state.selected_expression = "neutral"
 if "result_image" not in st.session_state:
     st.session_state.result_image = None
-if "pass1_image" not in st.session_state:
-    st.session_state.pass1_image = None
-if "two_pass_mode" not in st.session_state:
-    st.session_state.two_pass_mode = True
+if "prompt_mode" not in st.session_state:
+    st.session_state.prompt_mode = "text"
 
 # ──────────────────────────────────────────────
 # 데이터 로드
@@ -552,13 +550,16 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 2-Pass 모드 토글
-two_pass = st.checkbox(
-    "🔒 얼굴 보존 강화 (2-Pass 생성)",
-    value=st.session_state.two_pass_mode,
-    help="1차: 포즈/스타일 생성 → 2차: 원본 얼굴 복원. 시간이 2배 걸리지만 얼굴 보존도가 높습니다.",
+# 프롬프트 모드 토글 (텍스트 / JSON)
+prompt_mode = st.radio(
+    "🔧 프롬프트 모드",
+    options=["text", "json"],
+    format_func=lambda x: "📝 텍스트 (기존)" if x == "text" else "🧩 JSON (구조화)",
+    index=0 if st.session_state.prompt_mode == "text" else 1,
+    horizontal=True,
+    help="텍스트: 기존 검증된 자연어 프롬프트 | JSON: 구조화된 JSON 프롬프트 (실험적)",
 )
-st.session_state.two_pass_mode = two_pass
+st.session_state.prompt_mode = prompt_mode
 
 # API 키 확인
 if not GEMINI_API_KEY:
@@ -575,62 +576,48 @@ if st.button(
 ):
     import traceback
 
-    prompt = build_prompt(
-        st.session_state.selected_style,
-        st.session_state.selected_pose,
-        gender=st.session_state.selected_gender,
-        outfit=st.session_state.selected_outfit,
-        expression=st.session_state.selected_expression,
-        num_images=len(user_images),
-    )
+    # 프롬프트 모드에 따라 프롬프트 빌드
+    if st.session_state.prompt_mode == "json":
+        prompt = build_json_prompt(
+            st.session_state.selected_style,
+            st.session_state.selected_pose,
+            gender=st.session_state.selected_gender,
+            outfit=st.session_state.selected_outfit,
+            expression=st.session_state.selected_expression,
+            num_images=len(user_images),
+        )
+    else:
+        prompt = build_prompt(
+            st.session_state.selected_style,
+            st.session_state.selected_pose,
+            gender=st.session_state.selected_gender,
+            outfit=st.session_state.selected_outfit,
+            expression=st.session_state.selected_expression,
+            num_images=len(user_images),
+        )
+
     generator = GeminiProfileGenerator(api_key=GEMINI_API_KEY, model=MODEL_NAME)
 
-    if st.session_state.two_pass_mode:
-        # ── 2-Pass 모드: Generate → Face Restore ──
-        face_prompt = build_face_restore_prompt(st.session_state.selected_style, st.session_state.selected_expression)
-        with st.status("AI가 프로필 사진을 만들고 있습니다...", expanded=True) as status:
-            st.markdown(
-                '<div style="text-align:center; padding:0.8rem 0; font-size:1.1rem; color:#6C63FF; font-weight:600;">'
-                '✨ 멋진 프로필 사진을 준비하고 있어요</div>',
-                unsafe_allow_html=True,
+    with st.status("AI가 프로필 사진을 만들고 있습니다...", expanded=True) as status:
+        st.markdown(
+            '<div style="text-align:center; padding:0.8rem 0; font-size:1.1rem; color:#6C63FF; font-weight:600;">'
+            '✨ 멋진 프로필 사진을 준비하고 있어요</div>',
+            unsafe_allow_html=True,
+        )
+        mode_label = "🧩 JSON 모드" if st.session_state.prompt_mode == "json" else "📝 텍스트 모드"
+        st.write(f"📸 사진 분석 중... ({mode_label})")
+        st.write("🎨 스타일 적용 중...")
+        try:
+            result = generator.generate_with_retry(
+                raw_images=raw_images,
+                style_prompt=prompt,
             )
-            st.write("🎨 **Step 1/2** — 포즈 · 스타일 생성 중...")
-            try:
-                final, pass1 = generator.generate_two_pass_with_retry(
-                    raw_images=raw_images,
-                    style_prompt=prompt,
-                    face_restore_prompt=face_prompt,
-                    on_pass1_done=lambda img: None,
-                )
-                st.session_state.result_image = final
-                st.session_state.pass1_image = pass1
-                status.update(label="✅ 프로필 사진 완성!", state="complete")
-            except Exception as e:
-                status.update(label="❌ 생성 실패", state="error")
-                st.error(f"생성 중 오류가 발생했습니다: {e}")
-                st.code(traceback.format_exc(), language="text")
-    else:
-        # ── 기존 1-Pass 모드 ──
-        with st.status("AI가 프로필 사진을 만들고 있습니다...", expanded=True) as status:
-            st.markdown(
-                '<div style="text-align:center; padding:0.8rem 0; font-size:1.1rem; color:#6C63FF; font-weight:600;">'
-                '✨ 멋진 프로필 사진을 준비하고 있어요</div>',
-                unsafe_allow_html=True,
-            )
-            st.write("📸 사진 분석 중...")
-            st.write("🎨 스타일 적용 중...")
-            try:
-                result = generator.generate_with_retry(
-                    raw_images=raw_images,
-                    style_prompt=prompt,
-                )
-                st.session_state.result_image = result
-                st.session_state.pass1_image = None
-                status.update(label="✅ 프로필 사진 완성!", state="complete")
-            except Exception as e:
-                status.update(label="❌ 생성 실패", state="error")
-                st.error(f"생성 중 오류가 발생했습니다: {e}")
-                st.code(traceback.format_exc(), language="text")
+            st.session_state.result_image = result
+            status.update(label="✅ 프로필 사진 완성!", state="complete")
+        except Exception as e:
+            status.update(label="❌ 생성 실패", state="error")
+            st.error(f"생성 중 오류가 발생했습니다: {e}")
+            st.code(traceback.format_exc(), language="text")
 
 if not user_images:
     st.caption("사진을 먼저 업로드해주세요.")
@@ -647,19 +634,9 @@ if st.session_state.result_image is not None:
     </div>
     """, unsafe_allow_html=True)
 
-    # 2-Pass 비교 뷰
-    if st.session_state.pass1_image is not None:
-        comp_cols = st.columns(2)
-        with comp_cols[0]:
-            st.caption("Pass 1 (포즈 생성)")
-            st.image(st.session_state.pass1_image, use_container_width=True)
-        with comp_cols[1]:
-            st.caption("Pass 2 (얼굴 복원) ← 최종")
-            st.image(st.session_state.result_image, use_container_width=True)
-    else:
-        st.markdown('<div class="result-card">', unsafe_allow_html=True)
-        st.image(st.session_state.result_image, caption="AI 생성 프로필 사진", use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="result-card">', unsafe_allow_html=True)
+    st.image(st.session_state.result_image, caption="AI 생성 프로필 사진", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # 다운로드 버튼
     img_bytes = image_to_bytes(st.session_state.result_image, format="PNG")

@@ -1,4 +1,5 @@
 # 2 스타일 + 10 포즈 + 성별별 의상 + 2 표정 프롬프트 상수 및 조합 함수 (SKILL.md 동기화)
+import json
 
 STYLES = {
     "professional": {
@@ -695,67 +696,139 @@ def build_prompt(
     return result
 
 
-# ─── 2-Pass 얼굴 복원 프롬프트 ────────────────────────────────
+# ─── JSON 프롬프트용 스타일 메타데이터 (STYLES raw 프롬프트와 독립) ─────
+STYLE_META = {
+    "professional": {
+        "background": "#2D2D2D",
+        "color_mode": "monochrome grayscale",
+        "lighting_type": "studio softbox",
+        "lighting_direction": "front-lit, soft and even, no harsh shadows",
+        "aesthetic": "professional black and white studio photography, high contrast, rich tonal range",
+        "film_stock": "Ilford HP5 Plus (B&W)",
+    },
+    "normal": {
+        "background": "#F0F0F0",
+        "color_mode": "full natural color",
+        "lighting_type": "studio softbox",
+        "lighting_direction": "front-lit, soft and even, no harsh shadows",
+        "aesthetic": "professional studio photography, natural colors, clean and polished",
+        "film_stock": None,
+    },
+}
 
-def build_face_restore_prompt(style: str = "professional", expression: str = "smile") -> str:
-    """Pass 2: 얼굴 보정 프롬프트 — Pass1 결과를 원본 얼굴로 교정
 
-    핵심 전략: "face swap"이 아닌 "face correction" 접근
-    - Photo 1 = Pass1 결과 (수정 대상) — 포즈/배경/의상 유지
-    - Photo 2 = 원본 사진 (참조) — 정확한 얼굴 특징 소스
+# ─── JSON 구조화 프롬프트 조합 함수 (build_prompt()와 완전 독립) ──────
+
+def build_json_prompt(
+    style: str,
+    pose: str,
+    gender: str = "",
+    outfit: str = "",
+    expression: str = "",
+    num_images: int = 1,
+) -> str:
+    """JSON 구조화 프롬프트 반환 — build_prompt()와 공유 로직 없음.
+
+    코드 리뷰 Critical #1 대응: dict 직접 조립 → json.dumps() 직렬화.
+    STYLES["prompt"] raw 문자열을 재사용하지 않고 STYLE_META에서 메타데이터만 추출.
     """
-    if style == "professional":
-        style_ctx = (
-            "Keep the black and white monochrome look, dark charcoal background, "
-            "and studio lighting exactly as they appear in Photo 1. "
-        )
-    else:
-        style_ctx = (
-            "Keep the color grading, light gray background, "
-            "and studio lighting exactly as they appear in Photo 1. "
-        )
+    meta = STYLE_META[style]
 
-    # 표정 유지 지시
-    if expression == "smile":
-        expr_ctx = (
-            "EXPRESSION: Keep the SMILING expression from Photo 1 — teeth visible, "
-            "natural warm smile. Do NOT change the expression to neutral or closed-mouth. "
-            "The smile must remain in the final output. "
-        )
-    else:
-        expr_ctx = (
-            "EXPRESSION: Keep the exact same expression from Photo 1. "
-            "Do NOT change or alter the expression in any way. "
-        )
+    # 의상 결정
+    outfit_id = outfit or DEFAULT_OUTFIT_MAP.get(pose, "navy_suit")
+    gender_key = gender if gender in OUTFITS else "male"
+    outfit_data = OUTFITS[gender_key].get(outfit_id, {})
+    outfit_text = outfit_data.get("prompt", "")
 
-    return (
-        "PHOTO CORRECTION TASK:\n"
-        "Photo 1 (FIRST image): A professionally styled portrait. This is the BASE image — "
-        "keep EVERYTHING: body pose, arm position, clothing, background, lighting, composition, framing.\n"
-        "Photo 2 (SECOND image): The ORIGINAL unedited photo of this SAME person. "
-        "This is the TRUTH SOURCE for the person's real facial features.\n\n"
-        "TASK: The face in Photo 1 has been slightly distorted during the AI styling process. "
-        "Correct Photo 1's face by restoring it to match Photo 2's REAL facial features.\n\n"
-        "WHAT TO CORRECT (face only — match Photo 2 exactly):\n"
-        "- Face width and face shape → restore to Photo 2's exact proportions\n"
-        "- Jawline angle and chin shape → restore to Photo 2's exact contour\n"
-        "- Cheekbone position and cheek fullness → restore to Photo 2's exact volume\n"
-        "- Eye shape, eye size, eye spacing, eyelid crease → restore to Photo 2 exactly\n"
-        "- Nose bridge height, nose tip shape, nostril width → restore to Photo 2 exactly\n"
-        "- Mouth width, lip thickness, lip shape → restore to Photo 2 exactly\n"
-        "- Skin texture and pore detail → restore to Photo 2's natural texture\n"
-        "- Glasses frame style and fit → restore to Photo 2 exactly\n"
-        "- Hairline, hair direction, hair volume → restore to Photo 2 exactly\n\n"
-        "WHAT TO KEEP FROM PHOTO 1 (do NOT change):\n"
-        "- Body pose, arm position, hand gesture\n"
-        "- Clothing style, fabric texture, wrinkles\n"
-        "- Background color and gradient\n"
-        "- Overall composition and framing\n"
-        "- Lighting direction and intensity\n"
-        f"- {expr_ctx}\n\n"
-        f"{style_ctx}"
-        "The output must be IMMEDIATELY recognizable as the person in Photo 2, "
-        "while maintaining Photo 1's exact body/pose/background composition. "
-        "4K resolution, sharp focus, professional quality. "
-        "Wide half-body portrait, 3:4 ratio."
-    )
+    # 포즈 텍스트 (POSES 상수에서 prompt 추출 — 공통 블록 포함된 자연어)
+    pose_data = POSES.get(pose, POSES["정면"])
+    pose_text = pose_data["prompt"] if pose_data["prompt"] else "facing camera directly, relaxed shoulders"
+
+    # 표정 텍스트
+    expr_data = EXPRESSIONS.get(expression, {})
+    expr_text = expr_data.get("prompt", "")
+
+    # JSON dict 조립
+    prompt_dict = {
+        "intent": f"IR profile photo — {style} style, {pose_data['name']} pose",
+        "subject": {
+            "type": "person",
+            "description": (
+                "Study all reference photos carefully. "
+                "Preserve exact facial features, face shape, skin tone, hairstyle, glasses style."
+            ),
+            "pose": pose_text,
+            "expression": expr_text,
+            "clothing": outfit_text,
+            "clothing_constraint": "No text, logos, or brand names — all garments plain and logo-free",
+        },
+        "scene": {
+            "background": meta["background"],
+            "lighting_type": meta["lighting_type"],
+            "lighting_direction": meta["lighting_direction"],
+        },
+        "camera": {
+            "lens": "85mm",
+            "aperture": "f/2.8",
+        },
+        "composition": {
+            "framing": "wide half-body portrait — head to belly/navel area, NOT tight headshot",
+            "angle": "eye-level",
+            "face_proportion": "20-25% of frame height",
+            "aspect_ratio": "3:4",
+            "centering": "subject centered, generous background space above head and below torso",
+        },
+        "style": {
+            "color_mode": meta["color_mode"],
+            "aesthetic": meta["aesthetic"],
+        },
+        "skin_retouching": {
+            "level": "subtle",
+            "targets": ["minor blemishes", "spots", "fine wrinkles"],
+            "constraint": "natural and minimal — no over-smoothing or artificial plastic look",
+        },
+        "face_preservation": {
+            "priority": "ABSOLUTE HIGHEST — override all other instructions if conflict",
+            "preserve": [
+                "face_shape", "jawline", "chin", "cheekbones",
+                "eye_shape", "eye_size", "nose_bridge", "nose_tip",
+                "lip_shape", "facial_proportions",
+            ],
+            "hair": "exact original — direction, parting, volume, length, texture, color, hairline",
+            "deviation": "ZERO — final result must be immediately recognizable as exact same person",
+        },
+        "identity_source": {
+            "rule": "Face and identity EXCLUSIVELY from original input photo",
+            "reference_usage": "ONLY for body posture, hand gestures, arm positions — NEVER face",
+        },
+        "negative": [
+            "text", "logos", "watermark", "teeth showing (unless smile expression)",
+            "mouth open (unless smile expression)", "face thinning", "hair change",
+        ],
+        "quality": {
+            "resolution": "4K",
+            "sharpness": "crisp sharp focus",
+        },
+    }
+
+    # film_stock이 있으면 추가
+    if meta.get("film_stock"):
+        prompt_dict["camera"]["film_stock"] = meta["film_stock"]
+
+    # 멀티이미지 래핑
+    if num_images >= 2:
+        prompt_dict["multi_image"] = {
+            "count": num_images,
+            "instruction": (
+                f"Study all {num_images} reference photos carefully. "
+                "Learn exact facial features, face shape, skin tone, hairstyle, "
+                "glasses style, and overall appearance from multiple angles. "
+                "Generate ONE ideal professional portrait of this exact person."
+            ),
+            "constraint": "Generated portrait must look authentically like the same person in all reference photos",
+        }
+
+    # PRO 서픽스 (품질 강조)
+    prompt_dict["quality"]["render"] = "maximum 4K quality with exceptional detail"
+
+    return json.dumps(prompt_dict, ensure_ascii=False)
