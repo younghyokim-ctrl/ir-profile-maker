@@ -35,9 +35,12 @@ STYLES = {
             "must be preserved EXACTLY as in the input photo with ZERO deviation. "
             "Do NOT make the face thinner, wider, rounder, or longer. "
             "Do NOT alter eye shape, eye size, nose bridge, nose tip, lip shape, or any facial proportions. "
-            "HAIR (CRITICAL): Preserve the EXACT original hairstyle — same direction, same parting, same volume, "
-            "same length, same texture, same color, same hairline. Do NOT change the hair in ANY way. "
-            "The hair silhouette must PERFECTLY match the input photo. "
+            "HAIR (CRITICAL — ABSOLUTE ZERO TOLERANCE): Copy the EXACT hairstyle from the input photo with "
+            "PIXEL-LEVEL fidelity. Same direction, same parting, same volume, same length, same texture, same color, "
+            "same hairline, same silhouette. Do NOT alter, restyle, neaten, smooth, add volume, flatten, lengthen, "
+            "shorten, straighten, curl, or reposition ANY hair. Do NOT create a 'typical' or 'ideal' hairstyle — "
+            "reproduce the EXACT hair from the input even if it looks messy or imperfect. "
+            "ANY deviation from the original hairstyle is a CRITICAL FAILURE that invalidates the entire result. "
             "The final result must be IMMEDIATELY recognizable as the EXACT same person. "
             "CRITICAL FRAMING: This must be a WIDE half-body portrait, NOT a tight headshot. Show the person "
             "from the top of the head all the way down to the BELLY/NAVEL area, well below the chest. The "
@@ -81,9 +84,12 @@ STYLES = {
             "must be preserved EXACTLY as in the input photo with ZERO deviation. "
             "Do NOT make the face thinner, wider, rounder, or longer. "
             "Do NOT alter eye shape, eye size, nose bridge, nose tip, lip shape, or any facial proportions. "
-            "HAIR (CRITICAL): Preserve the EXACT original hairstyle — same direction, same parting, same volume, "
-            "same length, same texture, same color, same hairline. Do NOT change the hair in ANY way. "
-            "The hair silhouette must PERFECTLY match the input photo. "
+            "HAIR (CRITICAL — ABSOLUTE ZERO TOLERANCE): Copy the EXACT hairstyle from the input photo with "
+            "PIXEL-LEVEL fidelity. Same direction, same parting, same volume, same length, same texture, same color, "
+            "same hairline, same silhouette. Do NOT alter, restyle, neaten, smooth, add volume, flatten, lengthen, "
+            "shorten, straighten, curl, or reposition ANY hair. Do NOT create a 'typical' or 'ideal' hairstyle — "
+            "reproduce the EXACT hair from the input even if it looks messy or imperfect. "
+            "ANY deviation from the original hairstyle is a CRITICAL FAILURE that invalidates the entire result. "
             "The final result must be IMMEDIATELY recognizable as the EXACT same person. "
             "CRITICAL FRAMING: This must be a WIDE half-body portrait, NOT a tight headshot. Show the person "
             "from the top of the head all the way down to the BELLY/NAVEL area, well below the chest. The "
@@ -111,9 +117,12 @@ _COMMON_FACE_HAIR = (
     "must be preserved EXACTLY as in the input photo with ZERO deviation. "
     "Do NOT make the face thinner, wider, rounder, or longer. "
     "Do NOT alter eye shape, eye size, nose bridge, nose tip, lip shape, or any facial proportions. "
-    "HAIR (CRITICAL): Preserve the EXACT original hairstyle — same direction, same parting, same volume, "
-    "same length, same texture, same color, same hairline. Do NOT change the hair in ANY way. "
-    "The hair silhouette must PERFECTLY match the input photo. "
+    "HAIR (CRITICAL — ABSOLUTE ZERO TOLERANCE): Copy the EXACT hairstyle from the input photo with "
+    "PIXEL-LEVEL fidelity. Same direction, same parting, same volume, same length, same texture, same color, "
+    "same hairline, same silhouette. Do NOT alter, restyle, neaten, smooth, add volume, flatten, lengthen, "
+    "shorten, straighten, curl, or reposition ANY hair. Do NOT create a 'typical' or 'ideal' hairstyle — "
+    "reproduce the EXACT hair from the input even if it looks messy or imperfect. "
+    "ANY deviation from the original hairstyle is a CRITICAL FAILURE that invalidates the entire result. "
     "The final result must be IMMEDIATELY recognizable as the EXACT same person. "
 )
 
@@ -509,13 +518,17 @@ EXPRESSIONS = {
         "desc": "차분한 무표정 — 미소 없음",
         "icon": "😐",
         "prompt": (
-            "EXPRESSION: The person should have a calm, composed, completely NEUTRAL expression. "
-            "NO smile whatsoever — the mouth is closed with lips in a natural, relaxed, FLAT position. "
-            "The corners of the mouth are NEITHER turned up NOR down — completely horizontal and neutral. "
-            "Do NOT add any smile, micro-smile, or upward curve to the lips. "
-            "The eyes are calm, direct, and steady with no particular warmth or coldness. "
-            "The overall look is composed, confident, and professional — like a passport photo expression "
-            "but slightly more relaxed. "
+            "EXPRESSION (ABSOLUTE STRICT RULE — ZERO TOLERANCE FOR ANY SMILE): "
+            "The person MUST have a completely NEUTRAL, EXPRESSIONLESS face with ABSOLUTELY NO SMILE of any kind. "
+            "FORBIDDEN: micro-smile, slight smile, gentle smile, warm smile, closed-mouth smile, hint of a smile, "
+            "any upward curve of the lips, any warmth or friendliness in the mouth area. "
+            "The mouth is CLOSED with lips in a completely FLAT, HORIZONTAL, NEUTRAL position. "
+            "The corners of the mouth are PERFECTLY LEVEL — NEITHER turned up NOR down. "
+            "Do NOT curve the lips upward even by 1 millimeter. "
+            "The eyes are calm, direct, and steady — NO eye-smile, NO warmth in the eyes, NO squinting. "
+            "The overall look is composed, serious, and dignified — like a passport photo or government ID photo. "
+            "CRITICAL FAILURE CONDITION: If the output shows ANY smile, ANY upward lip movement, or ANY warmth "
+            "in the expression, the entire result is REJECTED. The expression must be stone-neutral. "
         ),
     },
     "smile": {
@@ -790,25 +803,47 @@ def build_prompt(
         core = core[:expr_start] + expr_prompt + core[next_section:]
 
     # === 5. 머리스타일 오버라이드 ===
-    hairstyle_prompt = ""
+    _HAIR_MARKER = "HAIR (CRITICAL"  # 마커 프리픽스 (뒤에 ")" 또는 " —" 등 다양)
+
+    def _find_hair_block(text):
+        """HAIR (CRITICAL 블록의 시작/끝 인덱스를 찾는다."""
+        if _HAIR_MARKER not in text:
+            return None, None
+        h_start = text.index(_HAIR_MARKER)
+        search_after = h_start + len(_HAIR_MARKER)
+        h_end = len(text)
+        for marker in ["The final result must be IMMEDIATELY", "CRITICAL FRAMING:", "FRAMING:"]:
+            try:
+                idx = text.index(marker, search_after)
+                if idx < h_end:
+                    h_end = idx
+            except ValueError:
+                continue
+        return h_start, h_end
+
     if hairstyle and hairstyle != "original":
+        # 머리스타일 변경 요청
         gender_key = gender if gender in HAIRSTYLES else "male"
         hs_data = HAIRSTYLES[gender_key].get(hairstyle, {})
         hairstyle_prompt = hs_data.get("prompt", "")
-    if hairstyle_prompt and "HAIR (CRITICAL):" in core:
-        # "HAIR (CRITICAL): ..." 블록을 머리스타일 프롬프트로 교체
-        hair_start = core.index("HAIR (CRITICAL):")
-        # HAIR 블록 끝 = 다음 섹션 또는 "The final result" 또는 "CRITICAL FRAMING"
-        search_after_hair = hair_start + len("HAIR (CRITICAL):")
-        hair_end = len(core)
-        for hair_marker in ["The final result must be IMMEDIATELY", "CRITICAL FRAMING:", "FRAMING:"]:
-            try:
-                idx = core.index(hair_marker, search_after_hair)
-                if idx < hair_end:
-                    hair_end = idx
-            except ValueError:
-                continue
-        core = core[:hair_start] + hairstyle_prompt + core[hair_end:]
+        if hairstyle_prompt:
+            h_start, h_end = _find_hair_block(core)
+            if h_start is not None:
+                core = core[:h_start] + hairstyle_prompt + core[h_end:]
+    else:
+        # 원본 유지: 기존 HAIR 블록을 더 강력한 보존 프롬프트로 교체
+        _HAIR_KEEP_ORIGINAL = (
+            "HAIR (CRITICAL — ABSOLUTE ZERO TOLERANCE — DO NOT TOUCH): "
+            "The person's hairstyle must be an EXACT COPY of the input photo. "
+            "Do NOT change the hair direction, parting, volume, length, texture, color, hairline, "
+            "or silhouette in ANY way. Do NOT neaten, smooth, restyle, add volume, or 'improve' the hair. "
+            "Even if changing outfit or pose, the HAIR must remain EXACTLY as in the original photo. "
+            "Copy every strand direction, every flyaway, every imperfection from the original. "
+            "ANY hair change — even subtle — is a CRITICAL FAILURE. "
+        )
+        h_start, h_end = _find_hair_block(core)
+        if h_start is not None:
+            core = core[:h_start] + _HAIR_KEEP_ORIGINAL + core[h_end:]
 
     # === 6. 멀티이미지 프리픽스/서픽스 ===
     # 실제 2~3장 업로드: "Study all reference photos..." 프리픽스 적용
