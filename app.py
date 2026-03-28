@@ -3,7 +3,7 @@ import base64
 import io
 import os
 import streamlit as st
-from prompts import get_style_list, get_pose_list, get_outfit_list, get_expression_list, get_hairstyle_list, build_json_prompt
+from prompts import get_style_list, get_pose_list, get_outfit_list, get_expression_list, get_hairstyle_list, get_glasses_list, build_json_prompt
 from image_utils import process_uploaded_image, image_to_bytes, get_raw_image_bytes
 from gemini_client import GeminiProfileGenerator
 from config import GEMINI_API_KEY, MODEL_NAME, THUMBNAIL_DIR
@@ -306,6 +306,8 @@ if "result_image" not in st.session_state:
     st.session_state.result_image = None
 if "selected_hairstyle" not in st.session_state:
     st.session_state.selected_hairstyle = "original"
+if "selected_glasses" not in st.session_state:
+    st.session_state.selected_glasses = "keep"
 
 # ──────────────────────────────────────────────
 # 데이터 로드
@@ -529,11 +531,34 @@ else:
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════
-# STEP 7 — 표정 선택
+# STEP 7 — 안경 선택
 # ══════════════════════════════════════════════
 st.markdown("""
 <div class="step-badge">
     <span class="step-num">7</span>
+    <span class="step-title">안경 선택</span>
+</div>
+""", unsafe_allow_html=True)
+
+glasses_options = get_glasses_list()
+glasses_cols = st.columns(len(glasses_options))
+for i, gl in enumerate(glasses_options):
+    with glasses_cols[i]:
+        is_selected = st.session_state.selected_glasses == gl["id"]
+        btn_label = f"✓ {gl['icon']} {gl['name_ko']}" if is_selected else f"{gl['icon']} {gl['name_ko']}"
+        btn_type = "primary" if is_selected else "secondary"
+        if st.button(btn_label, key=f"gl_{gl['id']}", use_container_width=True, type=btn_type, help=gl["desc"]):
+            st.session_state.selected_glasses = gl["id"]
+            st.rerun()
+
+st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════
+# STEP 8 — 표정 선택
+# ══════════════════════════════════════════════
+st.markdown("""
+<div class="step-badge">
+    <span class="step-num">8</span>
     <span class="step-title">표정 선택</span>
 </div>
 """, unsafe_allow_html=True)
@@ -552,11 +577,11 @@ for i, expr in enumerate(expressions):
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════
-# STEP 8 — 생성
+# STEP 9 — 생성
 # ══════════════════════════════════════════════
 st.markdown("""
 <div class="step-badge">
-    <span class="step-num">8</span>
+    <span class="step-num">9</span>
     <span class="step-title">프로필 사진 생성</span>
 </div>
 """, unsafe_allow_html=True)
@@ -588,6 +613,11 @@ if st.session_state.selected_gender:
     if _hs_obj:
         _hs_label = f"{_hs_obj['icon']} {_hs_obj['name_ko']}"
 
+# 안경 라벨
+_gl_list = get_glasses_list()
+_gl_obj = next((g for g in _gl_list if g["id"] == st.session_state.selected_glasses), _gl_list[0])
+_gl_label = f"{_gl_obj['icon']} {_gl_obj['name_ko']}"
+
 st.markdown(f"""
 <div class="info-box">
     🧑 <strong>{_gender_label}</strong> &nbsp;·&nbsp;
@@ -595,6 +625,7 @@ st.markdown(f"""
     👔 <strong>{_outfit_label}</strong> 의상 &nbsp;·&nbsp;
     🧍 <strong>{selected_pose_obj["name_ko"]}</strong> 포즈 &nbsp;·&nbsp;
     💇 <strong>{_hs_label}</strong> 머리 &nbsp;·&nbsp;
+    👓 <strong>{_gl_label}</strong> 안경 &nbsp;·&nbsp;
     {_expr_label} 표정 &nbsp;·&nbsp;
     📸 사진 {len(user_images)}장
 </div>
@@ -622,6 +653,7 @@ if st.button(
         outfit=st.session_state.selected_outfit,
         expression=st.session_state.selected_expression,
         hairstyle=st.session_state.selected_hairstyle,
+        glasses=st.session_state.selected_glasses,
         num_images=len(user_images),
     )
 
@@ -675,6 +707,28 @@ if st.session_state.result_image is not None:
         mime="image/png",
         use_container_width=True,
     )
+
+    # HTML 리포트 다운로드
+    from html_exporter import export_profile_html
+    selections = {
+        "gender": _gender_label,
+        "style": selected_style_obj["name_ko"],
+        "pose": selected_pose_obj["name_ko"],
+        "outfit": _outfit_label,
+        "expression": _expr_obj["name_ko"],
+        "hairstyle": _hs_label,
+        "glasses": _gl_label,
+    }
+    html_path = export_profile_html(st.session_state.result_image, selections)
+    if html_path and os.path.exists(html_path):
+        with open(html_path, "r", encoding="utf-8") as f:
+            st.download_button(
+                "📄 HTML 리포트 다운로드",
+                data=f.read(),
+                file_name=os.path.basename(html_path),
+                mime="text/html",
+                use_container_width=True,
+            )
 
 # ──────────────────────────────────────────────
 # 푸터

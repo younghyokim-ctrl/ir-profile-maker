@@ -556,6 +556,55 @@ EXPRESSIONS = {
 }
 
 
+# ─── 안경 프리셋 ─────────────────────────────────────────────
+GLASSES = {
+    "keep": {
+        "name_ko": "원본 유지",
+        "desc": "원본 사진의 안경 착용 상태를 그대로 유지",
+        "icon": "📸",
+        "prompt": "",
+    },
+    "remove": {
+        "name_ko": "안경 제거",
+        "desc": "안경을 벗은 모습으로 변환",
+        "icon": "👓",
+        "prompt": (
+            "GLASSES REMOVAL (CRITICAL): Remove ALL eyeglasses/spectacles from the person's face completely. "
+            "The eyes, nose bridge, and temples must appear naturally WITHOUT any glasses. "
+            "Do NOT leave any marks, indentations, or shadows where glasses were. "
+            "The eye area should look clean and natural as if the person never wore glasses. "
+            "Preserve the exact eye shape, eye size, and all facial features — only remove the glasses frame and lenses. "
+        ),
+    },
+    "add_round": {
+        "name_ko": "둥근 안경",
+        "desc": "얇은 원형 금속 프레임 안경 추가",
+        "icon": "🤓",
+        "prompt": (
+            "GLASSES ADDITION (CRITICAL): Add thin, modern ROUND metal-frame eyeglasses to the person's face. "
+            "The frames should be slim, elegant, silver or gold-toned metal with perfectly circular lenses. "
+            "The glasses must sit naturally on the nose bridge and ears, with proper perspective matching the face angle. "
+            "Lenses should be clear (non-tinted) with subtle, realistic reflections. "
+            "The glasses style should be minimal and sophisticated — suitable for a professional corporate portrait. "
+            "Do NOT alter any facial features behind the lenses — eyes, eyebrows must remain exactly the same. "
+        ),
+    },
+    "add_square": {
+        "name_ko": "각진 안경",
+        "desc": "얇은 사각 프레임 안경 추가",
+        "icon": "🕶️",
+        "prompt": (
+            "GLASSES ADDITION (CRITICAL): Add thin, modern RECTANGULAR/SQUARE frame eyeglasses to the person's face. "
+            "The frames should be slim, professional black or dark tortoiseshell with clean angular lines. "
+            "The glasses must sit naturally on the nose bridge and ears, with proper perspective matching the face angle. "
+            "Lenses should be clear (non-tinted) with subtle, realistic reflections. "
+            "The glasses style should be sharp and professional — suitable for a corporate executive portrait. "
+            "Do NOT alter any facial features behind the lenses — eyes, eyebrows must remain exactly the same. "
+        ),
+    },
+}
+
+
 # ─── 머리스타일 프리셋 ─────────────────────────────────────────
 HAIRSTYLES = {
     "male": {
@@ -713,6 +762,14 @@ def get_hairstyle_list(gender: str):
     return [
         {"id": k, "name_ko": v["name_ko"], "desc": v["desc"], "icon": v["icon"]}
         for k, v in hairstyles.items()
+    ]
+
+
+def get_glasses_list():
+    """안경 옵션 메타데이터 리스트 반환 (UI용)"""
+    return [
+        {"id": k, "name_ko": v["name_ko"], "desc": v["desc"], "icon": v["icon"]}
+        for k, v in GLASSES.items()
     ]
 
 
@@ -891,6 +948,7 @@ def build_json_prompt(
     outfit: str = "",
     expression: str = "",
     hairstyle: str = "",
+    glasses: str = "keep",
     num_images: int = 1,
 ) -> str:
     """JSON 구조화 프롬프트 반환 — build_prompt()와 공유 로직 없음.
@@ -976,6 +1034,24 @@ def build_json_prompt(
             "sharpness": "crisp sharp focus",
         },
     }
+
+    # 안경 오버라이드
+    if glasses and glasses != "keep":
+        glasses_data = GLASSES.get(glasses, {})
+        glasses_prompt = glasses_data.get("prompt", "")
+        if glasses_prompt:
+            prompt_dict["glasses"] = {
+                "priority": "HIGH — apply glasses instruction precisely",
+                "instruction": glasses_prompt,
+            }
+            # 안경 제거 시 subject.description에서 glasses 보존 문구 제거
+            if glasses == "remove":
+                prompt_dict["subject"]["description"] = prompt_dict["subject"]["description"].replace(
+                    ", glasses style", ""
+                ).replace("glasses style, ", "").replace("glasses style", "")
+            # 안경 추가 시 negative에서 관련 항목이 있으면 제거
+            if glasses.startswith("add"):
+                prompt_dict["negative"] = [n for n in prompt_dict["negative"] if "glasses" not in n.lower()]
 
     # 머리스타일 오버라이드
     if hairstyle and hairstyle != "original":

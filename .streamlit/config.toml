@@ -1,0 +1,15 @@
+# Streamlit Cloud 배포 설정
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = true
+
+[theme]
+primaryColor = "#6C63FF"
+backgroundColor = "#f8f9fc"
+secondaryBackgroundColor = "#e8ecf4"
+textColor = "#1f2937"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
