@@ -104,36 +104,42 @@ STYLES = {
 }
 
 # ─── 45도 측면(쓰리쿼터 뷰) 스타일 확장 ──────────────────────────
-_SIDE_ANGLE_INSTRUCTION = (
-    "BODY ANGLE AND GAZE (CRITICAL — THREE-QUARTER BODY WITH EYES TOWARD CAMERA): "
-    "BODY: The person's ENTIRE BODY and TORSO must be rotated approximately 40-45 degrees to the RIGHT. "
-    "Shoulders clearly angled — one shoulder closer to the camera, one further away. "
-    "This is NOT a subtle rotation — the body should be clearly angled, giving depth and dimension. "
-    "FACE AND EYES (IMPORTANT — DIFFERENT FROM BODY): While the body faces 45 degrees RIGHT, "
-    "the HEAD and FACE must turn BACK TOWARD THE CAMERA by about 20-25 degrees. "
-    "The result: body at 45 degrees, face at roughly 20-25 degrees from camera. "
-    "The person's EYES must be looking DIRECTLY AT THE CAMERA — making eye contact with the viewer. "
-    "Both eyes must be clearly visible. The nose is angled slightly to the right but NOT in full profile. "
-    "This creates the classic magazine portrait look: angled body but engaging eye contact. "
-    "HAND GESTURES AND POSES: All hand gestures (thumbs up, V-sign, finger heart, etc.) must be "
-    "directed TOWARD THE CAMERA, not toward the side. The hands should face the viewer/camera "
-    "so the gesture is clearly readable from the camera's perspective. "
-    "OVERRIDE: If ANY pose instruction says 'faces the camera directly', 'faces mostly forward', "
-    "'facing forward', apply it to the FACE and EYES only (looking at camera), NOT to the body. "
-    "The body stays at 45 degrees. Hands and gestures face the camera. "
+_SIDE_ANGLE_PREFIX = (
+    "★★★ MANDATORY OVERRIDE — READ THIS FIRST BEFORE ANYTHING ELSE ★★★ "
+    "BODY ROTATION: Rotate the person's body and torso 40-45 degrees to the RIGHT. "
+    "FACE AND EYES: The head must face DIRECTLY TOWARD THE CAMERA. The person must make DIRECT EYE CONTACT "
+    "with the camera lens. The face should be looking STRAIGHT AT THE VIEWER — as if posing for a photo "
+    "and looking right into the camera. Both eyes fully visible, facing forward at the camera. "
+    "HAND GESTURES: All hand gestures (thumbs up, V-sign, finger heart, etc.) must point TOWARD THE CAMERA "
+    "so they are clearly visible to the viewer. "
+    "IMPORTANT: Anywhere below that says 'faces the camera directly' or 'facing forward' — "
+    "that refers to the FACE only (correct, face looks at camera). The BODY stays rotated 45 degrees. "
+    "★★★ END OF MANDATORY OVERRIDE ★★★ "
 )
+
+# 포즈 프롬프트 내 방향 지시 치환용 (side 스타일에서 사용)
+_FACING_REPLACEMENTS = [
+    ("faces the camera directly", "has body rotated 45 degrees RIGHT but face looking directly at the camera"),
+    ("faces mostly forward", "has body rotated 45 degrees RIGHT but face looking directly at the camera"),
+    ("facing forward", "with body rotated 45 degrees RIGHT but face looking at the camera"),
+    ("Body facing forward", "Body rotated 45 degrees RIGHT, face looking at camera"),
+    ("face turned slightly back toward the camera so both eyes are visible",
+     "face looking DIRECTLY at the camera, making full eye contact"),
+    ("The face is turned slightly back toward the camera",
+     "The face looks DIRECTLY at the camera, making full eye contact"),
+]
 
 STYLES["professional_side"] = {
     "name": "Professional Side",
     "name_ko": "프로페셔널 · 옆",
     "desc": "흑백 + 다크 배경 + 45도 측면",
-    "prompt": STYLES["professional"]["prompt"] + " " + _SIDE_ANGLE_INSTRUCTION,
+    "prompt": _SIDE_ANGLE_PREFIX + STYLES["professional"]["prompt"],
 }
 STYLES["normal_side"] = {
     "name": "Normal Side",
     "name_ko": "노멀 · 옆",
     "desc": "컬러 + 밝은 배경 + 45도 측면",
-    "prompt": STYLES["normal"]["prompt"] + " " + _SIDE_ANGLE_INSTRUCTION,
+    "prompt": _SIDE_ANGLE_PREFIX + STYLES["normal"]["prompt"],
 }
 
 # UI 표시 순서 (정면 → 옆모습 교차 배치)
@@ -989,7 +995,11 @@ def build_prompt(
 
     # === 5b. 45도 측면(쓰리쿼터 뷰) 스타일 처리 ===
     if style.endswith("_side"):
-        core += " " + _SIDE_ANGLE_INSTRUCTION
+        # 포즈 프롬프트 내 "faces camera" 계열 문구를 치환
+        for old, new in _FACING_REPLACEMENTS:
+            core = core.replace(old, new)
+        # PREFIX를 맨 앞에 배치 (AI가 먼저 읽도록)
+        core = _SIDE_ANGLE_PREFIX + core
 
     # === 6. 멀티이미지 프리픽스/서픽스 ===
     # 실제 2~3장 업로드: "Study all reference photos..." 프리픽스 적용
@@ -1163,19 +1173,21 @@ def build_json_prompt(
 
     # 45도 측면(쓰리쿼터 뷰) 스타일 처리
     if style.endswith("_side"):
-        prompt_dict["body_angle"] = {
-            "priority": "CRITICAL — THREE-QUARTER BODY + EYES TOWARD CAMERA",
-            "body_rotation": "40-45 degrees to the RIGHT",
-            "face_rotation": "turned back toward camera, about 20-25 degrees from camera",
-            "eye_contact": "MUST look directly at camera — engaging eye contact with viewer",
-            "instruction": (
-                "BODY at 45 degrees RIGHT, but HEAD turns BACK TOWARD CAMERA (20-25 degrees from camera). "
-                "EYES look DIRECTLY AT THE CAMERA — making eye contact. Both eyes clearly visible. "
-                "HAND GESTURES face the CAMERA so gestures are readable from the viewer's perspective. "
-                "Classic magazine portrait: angled body, engaging eye contact, gestures toward viewer."
-            ),
+        # 포즈 텍스트 내 "faces camera" 계열 문구를 치환
+        pose_text_fixed = pose_text
+        for old, new in _FACING_REPLACEMENTS:
+            pose_text_fixed = pose_text_fixed.replace(old, new)
+        prompt_dict["subject"]["pose"] = pose_text_fixed
+
+        prompt_dict["MANDATORY_BODY_ANGLE"] = {
+            "priority": "★★★ READ FIRST — OVERRIDE ALL OTHER ANGLE INSTRUCTIONS ★★★",
+            "body": "Rotate body and torso 40-45 degrees to the RIGHT",
+            "face": "Face must look DIRECTLY AT THE CAMERA — straight at the viewer, full eye contact",
+            "eyes": "Eyes looking DIRECTLY INTO THE CAMERA LENS — as if posing for a photo",
+            "hands": "All hand gestures point TOWARD THE CAMERA for clear visibility to the viewer",
+            "key_rule": "Body rotated 45° RIGHT, but FACE and EYES face the camera DIRECTLY",
         }
-        prompt_dict["composition"]["angle"] = "three-quarter body (45°), face turned toward camera, eye contact"
+        prompt_dict["composition"]["angle"] = "body rotated 45° right, face looking directly at camera"
 
     # 안경 오버라이드
     if glasses and glasses != "keep":
