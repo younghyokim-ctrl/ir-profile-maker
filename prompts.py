@@ -1022,6 +1022,26 @@ def build_json_prompt(
     # JSON dict 조립
     prompt_dict = {
         "intent": f"IR profile photo — {style} style, {pose_data['name']} pose",
+        "CRITICAL_FIRST_PRIORITY": {
+            "background_replacement": (
+                "MANDATORY BACKGROUND CHANGE (DO THIS FIRST — HIGHEST PRIORITY): "
+                "You MUST completely REMOVE the original background from the input photo and "
+                f"REPLACE it with a solid {meta['background']} studio background. "
+                "The original environment, room, wall, furniture, or any real-world background "
+                "elements must be COMPLETELY ELIMINATED. The final image must look like it was "
+                "shot in a PROFESSIONAL PHOTO STUDIO with a clean, uniform backdrop. "
+                "If the original background is still visible in the output, the result is a CRITICAL FAILURE."
+            ),
+            "unwanted_objects_removal": (
+                "REMOVE ALL UNWANTED ACCESSORIES AND OBJECTS: Before generating the portrait, "
+                "digitally remove the following items if present in the input photo: "
+                "earphones, earbuds, AirPods, headphones, bluetooth earpieces, lanyards, "
+                "name badges, ID cards, face masks, sunglasses on head, hats, caps. "
+                "The person should appear clean and professional with NO distracting accessories. "
+                "Only keep: prescription eyeglasses (if glasses option is 'keep'), wristwatch, "
+                "simple rings, small stud earrings."
+            ),
+        },
         "subject": {
             "type": "person",
             "description": (
@@ -1088,6 +1108,8 @@ def build_json_prompt(
         "negative": [
             "text", "logos", "watermark", "teeth showing (unless smile expression)",
             "mouth open (unless smile expression)", "face thinning", "hair change",
+            "original background visible", "earphones", "earbuds", "AirPods", "headphones",
+            "lanyard", "name badge", "face mask", "sunglasses on head",
         ],
         "quality": {
             "resolution": "4K",
