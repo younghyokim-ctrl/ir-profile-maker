@@ -256,9 +256,11 @@ POSES = {
             "slightly back (not hunched). The overall posture conveys ease and quiet confidence — like a "
             "tech CEO in a casual photoshoot. "
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
-            "FRAMING: Wide portrait showing from head down well BELOW THE WAIST — the hands in pockets "
-            "must be visible, frame extends to mid-thigh. The face should occupy about 15-20% of the "
-            "frame height. This requires a wider/taller frame than other poses."
+            "FRAMING: EXTRA-WIDE full-body portrait shot from FURTHER BACK than other poses — as if the "
+            "camera stepped back 30cm. Show the person from head down to the KNEE area. The hands in "
+            "pockets must be clearly visible. The face should occupy only about 12-15% of the total frame "
+            "height. Generous background space around the entire body. This requires a significantly "
+            "wider/taller frame than other poses — the person should appear smaller within the frame."
         ),
         "has_reference": False,
         "reference_file": None,
