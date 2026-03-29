@@ -409,9 +409,8 @@ for row in range(2):
         style = styles[style_index]
         with style_cols[col_idx]:
             is_selected = st.session_state.selected_style == style["id"]
-            # 썸네일 이미지를 base64로 HTML 임베딩 (side 변형은 base 스타일 썸네일 공유)
-            thumb_id = style["id"].replace("_side", "") if "_side" in style["id"] else style["id"]
-            thumb_path = os.path.join(THUMBNAIL_DIR, "styles", f"{thumb_id}.jpg")
+            # 썸네일 이미지를 base64로 HTML 임베딩 (각 스타일 전용 썸네일)
+            thumb_path = os.path.join(THUMBNAIL_DIR, "styles", f"{style['id']}.jpg")
             if os.path.exists(thumb_path):
                 b64 = _img_to_base64(thumb_path)
                 border = "border: 3px solid #6C63FF; box-shadow: 0 0 0 3px rgba(108,99,255,0.18);" if is_selected else "border: 2px solid #e5e7eb;"
