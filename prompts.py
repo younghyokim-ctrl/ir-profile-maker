@@ -105,19 +105,22 @@ STYLES = {
 
 # ─── 45도 측면(쓰리쿼터 뷰) 스타일 확장 ──────────────────────────
 _SIDE_ANGLE_INSTRUCTION = (
-    "BODY AND FACE ANGLE (CRITICAL — TRUE THREE-QUARTER VIEW — OVERRIDE ALL 'facing camera' INSTRUCTIONS): "
-    "The person's ENTIRE BODY, TORSO, AND FACE must ALL be rotated approximately 40-45 degrees to the RIGHT. "
-    "This is a TRUE three-quarter view — the face is NOT looking at the camera. "
-    "FACE DIRECTION: The face must be turned 40-45 degrees to the RIGHT, matching the body angle. "
-    "The person is looking AWAY from the camera at a 40-45 degree angle. Only ONE EAR should be visible. "
-    "The nose points toward the RIGHT side of the frame, NOT toward the camera. "
-    "You should see more of one cheek than the other. This is NOT a subtle turn — "
-    "it must be a clearly visible three-quarter face angle. "
-    "SHOULDERS: Clearly angled — one shoulder closer to the camera, one further away. "
+    "BODY ANGLE AND GAZE (CRITICAL — THREE-QUARTER BODY WITH EYES TOWARD CAMERA): "
+    "BODY: The person's ENTIRE BODY and TORSO must be rotated approximately 40-45 degrees to the RIGHT. "
+    "Shoulders clearly angled — one shoulder closer to the camera, one further away. "
+    "This is NOT a subtle rotation — the body should be clearly angled, giving depth and dimension. "
+    "FACE AND EYES (IMPORTANT — DIFFERENT FROM BODY): While the body faces 45 degrees RIGHT, "
+    "the HEAD and FACE must turn BACK TOWARD THE CAMERA by about 20-25 degrees. "
+    "The result: body at 45 degrees, face at roughly 20-25 degrees from camera. "
+    "The person's EYES must be looking DIRECTLY AT THE CAMERA — making eye contact with the viewer. "
+    "Both eyes must be clearly visible. The nose is angled slightly to the right but NOT in full profile. "
+    "This creates the classic magazine portrait look: angled body but engaging eye contact. "
+    "HAND GESTURES AND POSES: All hand gestures (thumbs up, V-sign, finger heart, etc.) must be "
+    "directed TOWARD THE CAMERA, not toward the side. The hands should face the viewer/camera "
+    "so the gesture is clearly readable from the camera's perspective. "
     "OVERRIDE: If ANY pose instruction says 'faces the camera directly', 'faces mostly forward', "
-    "'facing forward', or 'face turned toward camera', IGNORE that instruction completely. "
-    "The 45-degree face and body angle takes ABSOLUTE PRIORITY over all pose-specific facing directions. "
-    "All hand gestures, arm positions, and pose shapes still apply, but from this angled perspective. "
+    "'facing forward', apply it to the FACE and EYES only (looking at camera), NOT to the body. "
+    "The body stays at 45 degrees. Hands and gestures face the camera. "
 )
 
 STYLES["professional_side"] = {
@@ -1161,19 +1164,18 @@ def build_json_prompt(
     # 45도 측면(쓰리쿼터 뷰) 스타일 처리
     if style.endswith("_side"):
         prompt_dict["body_angle"] = {
-            "priority": "CRITICAL — OVERRIDE ALL 'facing camera' INSTRUCTIONS",
-            "rotation": "40-45 degrees to the RIGHT — BOTH body AND face",
+            "priority": "CRITICAL — THREE-QUARTER BODY + EYES TOWARD CAMERA",
+            "body_rotation": "40-45 degrees to the RIGHT",
+            "face_rotation": "turned back toward camera, about 20-25 degrees from camera",
+            "eye_contact": "MUST look directly at camera — engaging eye contact with viewer",
             "instruction": (
-                "TRUE THREE-QUARTER VIEW: The person's ENTIRE BODY, TORSO, AND FACE must ALL be "
-                "rotated approximately 40-45 degrees to the RIGHT. The face is NOT looking at the camera. "
-                "The nose points toward the RIGHT side of the frame. Only ONE EAR should be visible. "
-                "You should see more of one cheek than the other. Shoulders clearly angled. "
-                "OVERRIDE: If ANY pose instruction says 'faces the camera directly', 'faces mostly forward', "
-                "'facing forward', or 'face turned toward camera', IGNORE that instruction completely. "
-                "The 45-degree face+body angle takes ABSOLUTE PRIORITY over all pose-specific facing directions."
+                "BODY at 45 degrees RIGHT, but HEAD turns BACK TOWARD CAMERA (20-25 degrees from camera). "
+                "EYES look DIRECTLY AT THE CAMERA — making eye contact. Both eyes clearly visible. "
+                "HAND GESTURES face the CAMERA so gestures are readable from the viewer's perspective. "
+                "Classic magazine portrait: angled body, engaging eye contact, gestures toward viewer."
             ),
         }
-        prompt_dict["composition"]["angle"] = "true three-quarter view, face AND body rotated 40-45 degrees right"
+        prompt_dict["composition"]["angle"] = "three-quarter body (45°), face turned toward camera, eye contact"
 
     # 안경 오버라이드
     if glasses and glasses != "keep":
