@@ -335,33 +335,26 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-uploaded_files = st.file_uploader(
-    "본인 사진 1~3장을 업로드하세요 (JPG, PNG, HEIC)",
+uploaded_file = st.file_uploader(
+    "화질 좋고 잘 나온 사진 1장을 업로드하세요 (JPG, PNG, HEIC)",
     type=["jpg", "jpeg", "png", "heic", "heif", "webp"],
-    accept_multiple_files=True,
+    accept_multiple_files=False,
     key="photo_upload",
 )
 
 # 업로드된 사진 미리보기
-if uploaded_files:
-    if len(uploaded_files) > 3:
-        st.markdown('<div class="warn-box">⚠️ 최대 3장까지 업로드 가능합니다. 처음 3장만 사용됩니다.</div>', unsafe_allow_html=True)
-        uploaded_files = uploaded_files[:3]
-
-    preview_cols = st.columns(len(uploaded_files))
+if uploaded_file:
     user_images = []   # PIL Images — UI 미리보기 전용
     raw_images = []    # (bytes, mime_type) — API 전달용 원본 바이너리
-    for i, f in enumerate(uploaded_files):
-        img = process_uploaded_image(f)
-        user_images.append(img)
-        f.seek(0)  # process_uploaded_image가 파일 포인터를 소비했으므로 리셋
-        raw_images.append(get_raw_image_bytes(f))
-        with preview_cols[i]:
-            st.image(img, caption=f.name, use_container_width=True)
+    img = process_uploaded_image(uploaded_file)
+    user_images.append(img)
+    uploaded_file.seek(0)  # process_uploaded_image가 파일 포인터를 소비했으므로 리셋
+    raw_images.append(get_raw_image_bytes(uploaded_file))
+    st.image(img, caption=uploaded_file.name, use_container_width=True)
 else:
     user_images = []
     raw_images = []
-    st.markdown('<div class="info-box">💡 얼굴이 잘 보이는 상반신 사진이 좋은 결과를 만듭니다.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="info-box">💡 얼굴이 잘 보이는 상반신 사진 1장이 좋은 결과를 만듭니다.</div>', unsafe_allow_html=True)
 
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
