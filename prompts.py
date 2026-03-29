@@ -3,8 +3,8 @@ import json
 
 STYLES = {
     "professional": {
-        "name": "Professional",
-        "name_ko": "프로페셔널",
+        "name": "Professional Front",
+        "name_ko": "프로페셔널 정면",
         "desc": "흑백 + 다크 차콜 배경",
         "prompt": (
             "Transform this photo into a professional black and white corporate headshot portrait "
@@ -53,9 +53,9 @@ STYLES = {
         ),
     },
     "normal": {
-        "name": "Normal",
-        "name_ko": "노멀",
-        "desc": "컬러 + 밝은 그레이 배경(#F0F0F0)",
+        "name": "Normal Front",
+        "name_ko": "노멀 정면",
+        "desc": "컬러 + 밝은 그레이 배경",
         "prompt": (
             "Transform this photo into a professional color corporate headshot portrait for investor "
             "relations materials. Keep the image in full natural color. Replace the background with a "
