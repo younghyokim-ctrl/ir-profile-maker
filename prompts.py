@@ -103,6 +103,34 @@ STYLES = {
     },
 }
 
+# ─── 45도 측면(쓰리쿼터 뷰) 스타일 확장 ──────────────────────────
+_SIDE_ANGLE_INSTRUCTION = (
+    "BODY ANGLE (CRITICAL — THREE-QUARTER VIEW): The person's ENTIRE BODY and TORSO "
+    "must be rotated approximately 40-45 degrees to the RIGHT (three-quarter view). "
+    "The shoulders are clearly angled — one shoulder closer to the camera, one further away. "
+    "The face is turned slightly back toward the camera so BOTH EYES remain fully visible, "
+    "creating a classic three-quarter portrait angle. This is NOT a subtle rotation — "
+    "the body should be clearly angled, giving depth and dimension to the portrait. "
+    "All pose, hand gesture, and other instructions still apply, but from this angled perspective. "
+    "Do NOT face the camera directly — the three-quarter body angle is MANDATORY. "
+)
+
+STYLES["professional_side"] = {
+    "name": "Professional Side",
+    "name_ko": "프로페셔널 · 옆",
+    "desc": "흑백 + 다크 배경 + 45도 측면",
+    "prompt": STYLES["professional"]["prompt"] + " " + _SIDE_ANGLE_INSTRUCTION,
+}
+STYLES["normal_side"] = {
+    "name": "Normal Side",
+    "name_ko": "노멀 · 옆",
+    "desc": "컬러 + 밝은 배경 + 45도 측면",
+    "prompt": STYLES["normal"]["prompt"] + " " + _SIDE_ANGLE_INSTRUCTION,
+}
+
+# UI 표시 순서 (정면 → 옆모습 교차 배치)
+_STYLE_ORDER = ["professional", "professional_side", "normal", "normal_side"]
+
 # ─── 공통 블록 (포즈 프롬프트에 인라인 전개용) ────────────────────
 _COMMON_EXPRESSION = (
     "EXPRESSION: Give the person a gentle, warm CLOSED-MOUTH SMILE — slightly more noticeable "
@@ -782,6 +810,8 @@ _QUALITY_TAIL = {
         "the person's appearance."
     ),
 }
+_QUALITY_TAIL["professional_side"] = _QUALITY_TAIL["professional"]
+_QUALITY_TAIL["normal_side"] = _QUALITY_TAIL["normal"]
 
 
 # ─── UI 헬퍼 함수 ──────────────────────────────────────────
@@ -821,10 +851,10 @@ def get_glasses_list():
 
 
 def get_style_list():
-    """스타일 메타데이터 리스트 반환 (UI용)"""
+    """스타일 메타데이터 리스트 반환 (UI용 — _STYLE_ORDER 순서)"""
     return [
-        {"id": k, **{kk: vv for kk, vv in v.items() if kk != "prompt"}}
-        for k, v in STYLES.items()
+        {"id": k, **{kk: vv for kk, vv in STYLES[k].items() if kk != "prompt"}}
+        for k in _STYLE_ORDER
     ]
 
 
@@ -949,6 +979,10 @@ def build_prompt(
         if h_start is not None:
             core = core[:h_start] + _HAIR_KEEP_ORIGINAL + core[h_end:]
 
+    # === 5b. 45도 측면(쓰리쿼터 뷰) 스타일 처리 ===
+    if style.endswith("_side"):
+        core += " " + _SIDE_ANGLE_INSTRUCTION
+
     # === 6. 멀티이미지 프리픽스/서픽스 ===
     # 실제 2~3장 업로드: "Study all reference photos..." 프리픽스 적용
     # 1장 업로드(API에서 2장 복제): 프리픽스/서픽스 없이 core만 사용
@@ -984,6 +1018,8 @@ STYLE_META = {
         "film_stock": None,
     },
 }
+STYLE_META["professional_side"] = {**STYLE_META["professional"]}
+STYLE_META["normal_side"] = {**STYLE_META["normal"]}
 
 
 # ─── JSON 구조화 프롬프트 조합 함수 (build_prompt()와 완전 독립) ──────
@@ -1116,6 +1152,22 @@ def build_json_prompt(
             "sharpness": "crisp sharp focus",
         },
     }
+
+    # 45도 측면(쓰리쿼터 뷰) 스타일 처리
+    if style.endswith("_side"):
+        prompt_dict["body_angle"] = {
+            "priority": "CRITICAL — MANDATORY THREE-QUARTER VIEW",
+            "rotation": "40-45 degrees to the RIGHT",
+            "instruction": (
+                "The person's ENTIRE BODY and TORSO must be rotated approximately 40-45 degrees "
+                "to the RIGHT (three-quarter view). Shoulders clearly angled — one closer to camera, "
+                "one further away. Face turned slightly back toward camera so BOTH EYES remain fully "
+                "visible. This is NOT subtle — the body should be clearly angled for depth and dimension. "
+                "All pose and gesture instructions still apply from this angled perspective. "
+                "Do NOT face camera directly — three-quarter body angle is MANDATORY."
+            ),
+        }
+        prompt_dict["composition"]["angle"] = "three-quarter view, body rotated 40-45 degrees right"
 
     # 안경 오버라이드
     if glasses and glasses != "keep":

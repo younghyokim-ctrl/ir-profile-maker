@@ -399,27 +399,34 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-style_cols = st.columns(len(styles))
-for i, style in enumerate(styles):
-    with style_cols[i]:
-        is_selected = st.session_state.selected_style == style["id"]
-        # 썸네일 이미지를 base64로 HTML 임베딩
-        thumb_path = os.path.join(THUMBNAIL_DIR, "styles", f"{style['id']}.jpg")
-        if os.path.exists(thumb_path):
-            b64 = _img_to_base64(thumb_path)
-            border = "border: 3px solid #6C63FF; box-shadow: 0 0 0 3px rgba(108,99,255,0.18);" if is_selected else "border: 2px solid #e5e7eb;"
-            st.markdown(
-                f'<div style="{border} border-radius: 12px; overflow: hidden; margin-bottom: 0.4rem;">'
-                f'<img src="data:image/jpeg;base64,{b64}" style="width:100%; display:block;" />'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-        # 버튼에 이름 + 설명 포함
-        btn_label = f"✓ {style['name_ko']} · {style['desc']}" if is_selected else f"{style['name_ko']} · {style['desc']}"
-        btn_type = "primary" if is_selected else "secondary"
-        if st.button(btn_label, key=f"style_{style['id']}", use_container_width=True, type=btn_type):
-            st.session_state.selected_style = style["id"]
-            st.rerun()
+# 2행 x 2열 배치 (정면/옆모습 교차)
+for row in range(2):
+    style_cols = st.columns(2)
+    for col_idx in range(2):
+        style_index = row * 2 + col_idx
+        if style_index >= len(styles):
+            break
+        style = styles[style_index]
+        with style_cols[col_idx]:
+            is_selected = st.session_state.selected_style == style["id"]
+            # 썸네일 이미지를 base64로 HTML 임베딩 (side 변형은 base 스타일 썸네일 공유)
+            thumb_id = style["id"].replace("_side", "") if "_side" in style["id"] else style["id"]
+            thumb_path = os.path.join(THUMBNAIL_DIR, "styles", f"{thumb_id}.jpg")
+            if os.path.exists(thumb_path):
+                b64 = _img_to_base64(thumb_path)
+                border = "border: 3px solid #6C63FF; box-shadow: 0 0 0 3px rgba(108,99,255,0.18);" if is_selected else "border: 2px solid #e5e7eb;"
+                st.markdown(
+                    f'<div style="{border} border-radius: 12px; overflow: hidden; margin-bottom: 0.4rem;">'
+                    f'<img src="data:image/jpeg;base64,{b64}" style="width:100%; display:block;" />'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+            # 버튼에 이름 + 설명 포함
+            btn_label = f"✓ {style['name_ko']} · {style['desc']}" if is_selected else f"{style['name_ko']} · {style['desc']}"
+            btn_type = "primary" if is_selected else "secondary"
+            if st.button(btn_label, key=f"style_{style['id']}", use_container_width=True, type=btn_type):
+                st.session_state.selected_style = style["id"]
+                st.rerun()
 
 st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
