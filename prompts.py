@@ -1024,6 +1024,19 @@ def build_json_prompt(
             "expression": expr_text,
             "clothing": outfit_text,
             "clothing_constraint": "No text, logos, or brand names — all garments plain and logo-free",
+            "clothing_variation": (
+                "SUBTLE VARIATION (IMPORTANT FOR TEAM PHOTOS): Even though a specific outfit style is requested, "
+                "introduce SUBTLE NATURAL VARIATIONS in the details — as if each person bought a similar style "
+                "from a DIFFERENT BRAND or collection. Vary these elements randomly: "
+                "(1) Inner layer color — e.g., white, light gray, cream, pale blue t-shirt or shirt underneath. "
+                "(2) Fabric texture — e.g., slightly different knit pattern, weave, or material finish. "
+                "(3) Fit and silhouette — e.g., slightly more relaxed vs. more tailored cut. "
+                "(4) Minor design details — e.g., different collar shape, button style, pocket placement, lapel width. "
+                "The overall CATEGORY and COLOR FAMILY must remain the same (e.g., 'gray blazer' stays a gray blazer), "
+                "but the specific garment should look like a UNIQUE piece, not an identical uniform. "
+                "This ensures that when multiple team members choose the same outfit option, "
+                "they look coordinated but NOT like they are wearing the exact same clothes."
+            ),
         },
         "scene": {
             "background": meta["background"],
