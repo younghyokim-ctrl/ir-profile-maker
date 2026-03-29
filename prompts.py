@@ -45,7 +45,7 @@ STYLES = {
             "CRITICAL FRAMING: This must be a WIDE portrait shot from FURTHER BACK than a typical headshot — as if "
             "the camera stepped back 90cm. Show the person from the top of the head all the way down to the "
             "KNEE area, well below the waist. The belt/waistband and upper thigh should be visible. "
-            "The face should occupy only about 10-14% of the total frame height. Very generous empty dark background space above the head "
+            "The face should occupy only about 8-11% of the total frame height. The ENTIRE person (head, body, hands, gestures) should appear proportionally smaller within the frame. Very generous empty dark background space above the head "
             "and below the torso. The person should appear relatively small within the large frame. Centered, "
             "3:4 portrait ratio. The final image must be high quality, 4K resolution, sharp focus, professional "
             "black and white studio photography look. Maintain complete authenticity of the person's appearance. "
@@ -94,7 +94,7 @@ STYLES = {
             "CRITICAL FRAMING: This must be a WIDE portrait shot from FURTHER BACK than a typical headshot — as if "
             "the camera stepped back 90cm. Show the person from the top of the head all the way down to the "
             "KNEE area, well below the waist. The belt/waistband and upper thigh should be visible. "
-            "The face should occupy only about 10-14% of the total frame height. Very generous empty light gray background space above "
+            "The face should occupy only about 8-11% of the total frame height. The ENTIRE person (head, body, hands, gestures) should appear proportionally smaller within the frame. Very generous empty light gray background space above "
             "the head and below the torso. The person should appear relatively small within the large frame. "
             "Centered, 3:4 portrait ratio. The final image must be high quality, 4K resolution, sharp focus, "
             "professional studio photography look with natural colors. Maintain complete authenticity of the "
@@ -204,7 +204,7 @@ POSES = {
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
             "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area, well below the waist. The crossed arms should be fully visible "
-            "with both hands shown. The face should occupy only about 10-14% of the frame height. Very generous "
+            "with both hands shown. The face should occupy only about 8-11% of the frame height. The ENTIRE person including hands and gestures must appear proportionally smaller. Very generous "
             "background space around the person on all sides — the person should not fill the entire frame."
         ),
         "has_reference": False,
@@ -225,7 +225,7 @@ POSES = {
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
             "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the WAIST/BELT area. Both hands and the face-framing gesture must be fully visible "
-            "and clear. The face should occupy only about 10-14% of the frame height. Very generous background "
+            "and clear. The face should occupy only about 8-11% of the frame height. The ENTIRE person including hands and gestures must appear proportionally smaller. Very generous background "
             "space around the person on all sides."
         ),
         "has_reference": False,
@@ -246,7 +246,7 @@ POSES = {
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
             "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area. The thumbs-up hand gesture must be clearly visible and "
-            "well-formed. The face should occupy only about 10-14% of the frame height. Very generous "
+            "well-formed. The face should occupy only about 8-11% of the frame height. The ENTIRE person including hands and gestures must appear proportionally smaller. Very generous "
             "background space around the person on all sides."
         ),
         "has_reference": False,
@@ -266,7 +266,7 @@ POSES = {
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
             "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area. The V-sign hand gesture must be clearly visible and properly "
-            "formed. The face should occupy only about 10-14% of the frame height. Very generous background "
+            "formed. The face should occupy only about 8-11% of the frame height. The ENTIRE person including hands and gestures must appear proportionally smaller. Very generous background "
             "space around the person on all sides."
         ),
         "has_reference": False,
@@ -286,7 +286,7 @@ POSES = {
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
             "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area. Both thumbs-up hand gestures must be clearly visible and "
-            "well-formed. The face should occupy only about 10-14% of the frame height. Very generous "
+            "well-formed. The face should occupy only about 8-11% of the frame height. The ENTIRE person including hands and gestures must appear proportionally smaller. Very generous "
             "background space around the person on all sides."
         ),
         "has_reference": False,
@@ -329,7 +329,7 @@ POSES = {
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
             "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area. The finger heart gesture must be clearly visible and properly "
-            "formed. The face should occupy only about 10-14% of the frame height. Very generous background "
+            "formed. The face should occupy only about 8-11% of the frame height. The ENTIRE person including hands and gestures must appear proportionally smaller. Very generous background "
             "space around the person on all sides."
         ),
         "has_reference": False,
@@ -384,7 +384,7 @@ POSES = {
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
             "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area. The raised fist must be clearly visible at ear height. "
-            "The face should occupy only about 10-14% of the frame height. Very generous background space "
+            "The face should occupy only about 8-11% of the frame height. The ENTIRE person including hands and gestures must appear proportionally smaller. Very generous background space "
             "around the person on all sides."
         ),
         "has_reference": False,
@@ -1132,7 +1132,7 @@ def build_json_prompt(
         "composition": {
             "framing": "wide half-body portrait — head to belly/navel area, NOT tight headshot",
             "angle": "eye-level",
-            "face_proportion": "10-14% of frame height",
+            "face_proportion": "8-11% of frame height — entire person including hands/gestures proportionally smaller",
             "aspect_ratio": "3:4",
             "centering": "subject centered, generous background space above head and below torso",
         },
