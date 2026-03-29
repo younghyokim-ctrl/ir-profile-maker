@@ -105,14 +105,19 @@ STYLES = {
 
 # ─── 45도 측면(쓰리쿼터 뷰) 스타일 확장 ──────────────────────────
 _SIDE_ANGLE_INSTRUCTION = (
-    "BODY ANGLE (CRITICAL — THREE-QUARTER VIEW): The person's ENTIRE BODY and TORSO "
-    "must be rotated approximately 40-45 degrees to the RIGHT (three-quarter view). "
-    "The shoulders are clearly angled — one shoulder closer to the camera, one further away. "
-    "The face is turned slightly back toward the camera so BOTH EYES remain fully visible, "
-    "creating a classic three-quarter portrait angle. This is NOT a subtle rotation — "
-    "the body should be clearly angled, giving depth and dimension to the portrait. "
-    "All pose, hand gesture, and other instructions still apply, but from this angled perspective. "
-    "Do NOT face the camera directly — the three-quarter body angle is MANDATORY. "
+    "BODY AND FACE ANGLE (CRITICAL — TRUE THREE-QUARTER VIEW — OVERRIDE ALL 'facing camera' INSTRUCTIONS): "
+    "The person's ENTIRE BODY, TORSO, AND FACE must ALL be rotated approximately 40-45 degrees to the RIGHT. "
+    "This is a TRUE three-quarter view — the face is NOT looking at the camera. "
+    "FACE DIRECTION: The face must be turned 40-45 degrees to the RIGHT, matching the body angle. "
+    "The person is looking AWAY from the camera at a 40-45 degree angle. Only ONE EAR should be visible. "
+    "The nose points toward the RIGHT side of the frame, NOT toward the camera. "
+    "You should see more of one cheek than the other. This is NOT a subtle turn — "
+    "it must be a clearly visible three-quarter face angle. "
+    "SHOULDERS: Clearly angled — one shoulder closer to the camera, one further away. "
+    "OVERRIDE: If ANY pose instruction says 'faces the camera directly', 'faces mostly forward', "
+    "'facing forward', or 'face turned toward camera', IGNORE that instruction completely. "
+    "The 45-degree face and body angle takes ABSOLUTE PRIORITY over all pose-specific facing directions. "
+    "All hand gestures, arm positions, and pose shapes still apply, but from this angled perspective. "
 )
 
 STYLES["professional_side"] = {
@@ -1156,18 +1161,19 @@ def build_json_prompt(
     # 45도 측면(쓰리쿼터 뷰) 스타일 처리
     if style.endswith("_side"):
         prompt_dict["body_angle"] = {
-            "priority": "CRITICAL — MANDATORY THREE-QUARTER VIEW",
-            "rotation": "40-45 degrees to the RIGHT",
+            "priority": "CRITICAL — OVERRIDE ALL 'facing camera' INSTRUCTIONS",
+            "rotation": "40-45 degrees to the RIGHT — BOTH body AND face",
             "instruction": (
-                "The person's ENTIRE BODY and TORSO must be rotated approximately 40-45 degrees "
-                "to the RIGHT (three-quarter view). Shoulders clearly angled — one closer to camera, "
-                "one further away. Face turned slightly back toward camera so BOTH EYES remain fully "
-                "visible. This is NOT subtle — the body should be clearly angled for depth and dimension. "
-                "All pose and gesture instructions still apply from this angled perspective. "
-                "Do NOT face camera directly — three-quarter body angle is MANDATORY."
+                "TRUE THREE-QUARTER VIEW: The person's ENTIRE BODY, TORSO, AND FACE must ALL be "
+                "rotated approximately 40-45 degrees to the RIGHT. The face is NOT looking at the camera. "
+                "The nose points toward the RIGHT side of the frame. Only ONE EAR should be visible. "
+                "You should see more of one cheek than the other. Shoulders clearly angled. "
+                "OVERRIDE: If ANY pose instruction says 'faces the camera directly', 'faces mostly forward', "
+                "'facing forward', or 'face turned toward camera', IGNORE that instruction completely. "
+                "The 45-degree face+body angle takes ABSOLUTE PRIORITY over all pose-specific facing directions."
             ),
         }
-        prompt_dict["composition"]["angle"] = "three-quarter view, body rotated 40-45 degrees right"
+        prompt_dict["composition"]["angle"] = "true three-quarter view, face AND body rotated 40-45 degrees right"
 
     # 안경 오버라이드
     if glasses and glasses != "keep":
