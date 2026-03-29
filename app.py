@@ -6,7 +6,7 @@ import streamlit as st
 from prompts import get_style_list, get_pose_list, get_outfit_list, get_expression_list, get_hairstyle_list, get_glasses_list, build_json_prompt
 from image_utils import process_uploaded_image, image_to_bytes, get_raw_image_bytes
 from gemini_client import GeminiProfileGenerator
-from config import GEMINI_API_KEY, MODEL_NAME, THUMBNAIL_DIR
+from config import GEMINI_API_KEY, MODEL_NAME, THUMBNAIL_DIR, AVAILABLE_MODELS
 
 
 def _img_to_base64(path: str) -> str:
@@ -628,6 +628,26 @@ st.markdown(f"""
 if not GEMINI_API_KEY:
     st.markdown('<div class="warn-box">⚠️ Gemini API 키가 설정되지 않았습니다. <code>.env</code> 파일에 GEMINI_API_KEY를 추가해주세요.</div>', unsafe_allow_html=True)
 
+# ── 모델 선택 (고급 설정) ──
+with st.expander("⚙️ AI 모델 선택", expanded=False):
+    model_options = [m["id"] for m in AVAILABLE_MODELS]
+    model_labels = [m["name"] for m in AVAILABLE_MODELS]
+    if "selected_model" not in st.session_state:
+        st.session_state.selected_model = AVAILABLE_MODELS[0]["id"]
+    current_idx = model_options.index(st.session_state.selected_model) if st.session_state.selected_model in model_options else 0
+    selected = st.radio(
+        "생성에 사용할 AI 모델을 선택하세요",
+        options=model_options,
+        format_func=lambda x: next(m["name"] for m in AVAILABLE_MODELS if m["id"] == x),
+        index=current_idx,
+        horizontal=True,
+    )
+    st.session_state.selected_model = selected
+    if selected == "gemini-3.1-flash-image-preview":
+        st.caption("⚡ 빠른 속도 · 저렴한 비용 · 4K 지원 (기본값)")
+    else:
+        st.caption("💎 최고 품질 · 복잡한 지시 추종력 우수")
+
 # 생성 버튼
 can_generate = bool(raw_images) and bool(GEMINI_API_KEY)
 
@@ -650,7 +670,7 @@ if st.button(
         num_images=len(user_images),
     )
 
-    generator = GeminiProfileGenerator(api_key=GEMINI_API_KEY, model=MODEL_NAME)
+    generator = GeminiProfileGenerator(api_key=GEMINI_API_KEY, model=st.session_state.get("selected_model", MODEL_NAME))
 
     with st.status("AI가 프로필 사진을 만들고 있습니다...", expanded=True) as status:
         st.markdown(
