@@ -486,6 +486,17 @@ OUTFITS = {
                 "casual aesthetic."
             ),
         },
+        "denim_jacket": {
+            "name_ko": "데님자켓",
+            "desc": "클래식 데님 자켓 + 화이트 티",
+            "category": "캐주얼",
+            "prompt": (
+                "Dress the person in a classic medium-wash blue denim jacket with a clean white "
+                "crew-neck t-shirt underneath. The denim jacket has a standard collar, metal buttons, "
+                "and chest pockets — a timeless casual style. No logos, no distressing, clean and "
+                "well-fitted. Modern casual-smart look."
+            ),
+        },
     },
     "female": {
         "original": {
