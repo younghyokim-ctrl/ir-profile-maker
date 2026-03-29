@@ -514,9 +514,10 @@ OUTFITS = {
             "desc": "블랙 정장 재킷 + 이너",
             "category": "포멀",
             "prompt": (
-                "The person should be wearing a tailored BLACK BLAZER/JACKET over a clean, "
+                "Dress the person in a tailored BLACK BLAZER/JACKET over a clean, "
                 "light-colored inner top (white or light gray). The blazer is well-fitted with "
-                "structured shoulders. Classic professional corporate style."
+                "structured shoulders. Classic professional corporate style. "
+                "Do not include any text, logos, or brand names on the clothing."
             ),
         },
         "white_blouse": {
@@ -524,9 +525,10 @@ OUTFITS = {
             "desc": "깔끔한 화이트 셔츠/블라우스",
             "category": "포멀",
             "prompt": (
-                "The person should be wearing an elegant WHITE BLOUSE — clean fabric, "
-                "neatly pressed, with a classic collar or soft V-neckline. No accessories or "
-                "minimal. The look is bright, professional, and polished."
+                "Dress the person in an elegant WHITE BLOUSE — clean fabric, "
+                "neatly pressed, with a classic collar or soft V-neckline. Minimal accessories. "
+                "The look is bright, professional, and polished. "
+                "Do not include any text, logos, or brand names on the clothing."
             ),
         },
         "navy_blazer": {
@@ -534,9 +536,10 @@ OUTFITS = {
             "desc": "네이비 재킷 + 밝은 이너",
             "category": "비즈니스",
             "prompt": (
-                "The person should be wearing a NAVY BLUE BLAZER over a bright, light-colored "
+                "Dress the person in a NAVY BLUE BLAZER over a bright, light-colored "
                 "inner top (white, cream, or light blue). The blazer is modern-cut and well-fitted. "
-                "Professional yet approachable business style."
+                "Professional yet approachable business style. "
+                "Do not include any text, logos, or brand names on the clothing."
             ),
         },
         "beige_jacket": {
@@ -544,9 +547,10 @@ OUTFITS = {
             "desc": "베이지/카멜 톤 블레이저",
             "category": "비즈니스",
             "prompt": (
-                "The person should be wearing a warm BEIGE or CAMEL-TONED BLAZER over a "
+                "Dress the person in a warm BEIGE or CAMEL-TONED BLAZER over a "
                 "neutral inner top. The fabric has a soft, elegant texture. The look conveys warmth, "
-                "sophistication, and approachable professionalism."
+                "sophistication, and approachable professionalism. "
+                "Do not include any text, logos, or brand names on the clothing."
             ),
         },
         "black_turtleneck": {
@@ -554,7 +558,7 @@ OUTFITS = {
             "desc": "심플 블랙 터틀넥",
             "category": "비즈니스",
             "prompt": (
-                "The person should be wearing a sleek, fitted BLACK TURTLENECK — minimalist "
+                "Dress the person in a sleek, fitted BLACK TURTLENECK — minimalist "
                 "and elegant. No visible accessories, clean lines. The fabric is smooth and "
                 "high-quality. Modern, confident, intellectual style."
             ),
@@ -564,7 +568,7 @@ OUTFITS = {
             "desc": "부드러운 크림/아이보리 니트",
             "category": "캐주얼",
             "prompt": (
-                "The person should be wearing a soft CREAM or IVORY KNIT SWEATER — cozy yet "
+                "Dress the person in a soft CREAM or IVORY KNIT SWEATER — cozy yet "
                 "polished, with a round or V-neckline. The fabric has a gentle, warm texture. "
                 "The look is friendly, approachable, and effortlessly stylish."
             ),
@@ -574,7 +578,7 @@ OUTFITS = {
             "desc": "라이트블루 데님 재킷",
             "category": "캐주얼",
             "prompt": (
-                "The person should be wearing a LIGHT BLUE DENIM JACKET over a simple white "
+                "Dress the person in a LIGHT BLUE DENIM JACKET over a simple white "
                 "or light-colored inner top. The denim is a classic medium wash. The look is casual, "
                 "youthful, and energetic — creative industry professional style."
             ),
@@ -1012,6 +1016,15 @@ def build_prompt(
         # PREFIX를 맨 앞에 배치 (AI가 먼저 읽도록)
         core = _SIDE_ANGLE_PREFIX + core
 
+    # === 5c. 여성 얼굴 보존 강화 ===
+    if gender == "female":
+        core += (
+            " FEMALE IDENTITY PROTECTION (CRITICAL): Do NOT beautify, slim, reshape, or idealize "
+            "the face. Do NOT make the face thinner, eyes larger, nose smaller, lips fuller, skin lighter, "
+            "or jawline sharper. Do NOT apply any beauty filter. The face must be IDENTICAL to the input. "
+            "EXPRESSION FIDELITY: Apply the requested expression EXACTLY — do not substitute a different one. "
+        )
+
     # === 6. 멀티이미지 프리픽스/서픽스 ===
     # 실제 2~3장 업로드: "Study all reference photos..." 프리픽스 적용
     # 1장 업로드(API에서 2장 복제): 프리픽스/서픽스 없이 core만 사용
@@ -1181,6 +1194,25 @@ def build_json_prompt(
             "sharpness": "crisp sharp focus",
         },
     }
+
+    # 여성 선택 시 얼굴 보존 강화 (AI 미화/변형 방지)
+    if gender == "female":
+        prompt_dict["female_identity_protection"] = {
+            "priority": "ABSOLUTE HIGHEST — NEVER ALTER FEMALE FACIAL FEATURES",
+            "rule": (
+                "CRITICAL FOR FEMALE SUBJECTS: Do NOT beautify, slim, reshape, or idealize the face in any way. "
+                "Do NOT make the face thinner, eyes larger, nose smaller, lips fuller, skin lighter, "
+                "or jawline sharper. Do NOT apply any 'beauty filter' or 'prettify' effect. "
+                "The face shape, skin tone, eye shape, nose shape, lip shape, jawline, and all facial "
+                "proportions must be IDENTICAL to the original input photo. "
+                "Do NOT change the age appearance — no de-aging or youth-enhancement. "
+                "EXPRESSION FIDELITY: Apply the requested expression EXACTLY as described — "
+                "do not substitute a different expression. If 'neutral' is requested, the face must "
+                "be stone-neutral with ZERO smile. If 'slight smile' is requested, only the mouth "
+                "corners move 2-3mm — eyes stay unchanged. "
+                "Any facial modification beyond the requested expression change is a CRITICAL FAILURE."
+            ),
+        }
 
     # 45도 측면(쓰리쿼터 뷰) 스타일 처리
     if style.endswith("_side"):
