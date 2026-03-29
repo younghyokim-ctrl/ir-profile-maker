@@ -43,7 +43,7 @@ STYLES = {
             "ANY deviation from the original hairstyle is a CRITICAL FAILURE that invalidates the entire result. "
             "The final result must be IMMEDIATELY recognizable as the EXACT same person. "
             "CRITICAL FRAMING: This must be a WIDE portrait shot from FURTHER BACK than a typical headshot — as if "
-            "the camera stepped back 60cm. Show the person from the top of the head all the way down to the "
+            "the camera stepped back 90cm. Show the person from the top of the head all the way down to the "
             "KNEE area, well below the waist. The belt/waistband and upper thigh should be visible. "
             "The face should occupy only about 10-14% of the total frame height. Very generous empty dark background space above the head "
             "and below the torso. The person should appear relatively small within the large frame. Centered, "
@@ -92,7 +92,7 @@ STYLES = {
             "ANY deviation from the original hairstyle is a CRITICAL FAILURE that invalidates the entire result. "
             "The final result must be IMMEDIATELY recognizable as the EXACT same person. "
             "CRITICAL FRAMING: This must be a WIDE portrait shot from FURTHER BACK than a typical headshot — as if "
-            "the camera stepped back 60cm. Show the person from the top of the head all the way down to the "
+            "the camera stepped back 90cm. Show the person from the top of the head all the way down to the "
             "KNEE area, well below the waist. The belt/waistband and upper thigh should be visible. "
             "The face should occupy only about 10-14% of the total frame height. Very generous empty light gray background space above "
             "the head and below the torso. The person should appear relatively small within the large frame. "
@@ -202,7 +202,7 @@ POSES = {
             "flaring outward). The crossed arms sit at mid-chest height. Shoulders are relaxed but "
             "squared. This is a powerful, confident CEO/executive portrait pose. "
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
-            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 60cm. Show from "
+            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area, well below the waist. The crossed arms should be fully visible "
             "with both hands shown. The face should occupy only about 10-14% of the frame height. Very generous "
             "background space around the person on all sides — the person should not fill the entire frame."
@@ -223,7 +223,7 @@ POSES = {
             "(꽃받침) pose where the hands frame the face like flower petals. A very subtle head tilt "
             "is allowed. "
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
-            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 60cm. Show from "
+            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the WAIST/BELT area. Both hands and the face-framing gesture must be fully visible "
             "and clear. The face should occupy only about 10-14% of the frame height. Very generous background "
             "space around the person on all sides."
@@ -244,7 +244,7 @@ POSES = {
             "body — only the forearm is raised to chest level. The LEFT ARM hangs naturally at the side, "
             "relaxed and out of focus or partially out of frame. "
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
-            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 60cm. Show from "
+            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area. The thumbs-up hand gesture must be clearly visible and "
             "well-formed. The face should occupy only about 10-14% of the frame height. Very generous "
             "background space around the person on all sides."
@@ -264,7 +264,7 @@ POSES = {
             "The BACK OF THE HAND faces the camera. The right ELBOW points DOWNWARD, with only the forearm "
             "raised to face level. The LEFT ARM hangs naturally at the side, relaxed. Body facing forward. "
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
-            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 60cm. Show from "
+            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area. The V-sign hand gesture must be clearly visible and properly "
             "formed. The face should occupy only about 10-14% of the frame height. Very generous background "
             "space around the person on all sides."
@@ -284,7 +284,7 @@ POSES = {
             "Both ELBOWS stay CLOSE to the body — only the forearms are raised to chest level. Shoulders "
             "are relaxed and natural. "
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
-            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 60cm. Show from "
+            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area. Both thumbs-up hand gestures must be clearly visible and "
             "well-formed. The face should occupy only about 10-14% of the frame height. Very generous "
             "background space around the person on all sides."
@@ -327,7 +327,7 @@ POSES = {
             "the forearm raised to face level. The LEFT ARM hangs naturally at the side, relaxed. Body "
             "facing forward. "
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
-            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 60cm. Show from "
+            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area. The finger heart gesture must be clearly visible and properly "
             "formed. The face should occupy only about 10-14% of the frame height. Very generous background "
             "space around the person on all sides."
@@ -361,7 +361,7 @@ POSES = {
             "front of the face. Both ELBOWS are bent and flare OUTWARD and UPWARD. A slight head tilt "
             "toward the heart gesture is allowed and encouraged. Body facing forward. "
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
-            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 60cm. Show from "
+            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the WAIST/BELT area. The heart hand gesture must be clearly visible, properly "
             "formed with the correct finger anatomy described above. The face should occupy only about 10-14% "
             "of the frame height. Very generous background space around the person on all sides."
@@ -382,7 +382,7 @@ POSES = {
             "at the side, relaxed. This is the Korean \"fighting/화이팅\" cheer gesture conveying "
             "motivation and determination. "
             + _COMMON_EXPRESSION + _COMMON_IDENTITY_SOURCE + _COMMON_FACE_HAIR +
-            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 60cm. Show from "
+            "FRAMING: Wide portrait shot from FURTHER BACK — as if the camera stepped back 90cm. Show from "
             "head down to the KNEE area. The raised fist must be clearly visible at ear height. "
             "The face should occupy only about 10-14% of the frame height. Very generous background space "
             "around the person on all sides."
