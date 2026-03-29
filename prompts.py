@@ -1127,21 +1127,30 @@ def build_json_prompt(
                 "Preserve exact facial features, face shape, skin tone, hairstyle, glasses style."
             ),
             "pose": pose_text,
-            "expression": expr_text,
-            "clothing": outfit_text,
-            "clothing_constraint": "No text, logos, or brand names — all garments plain and logo-free",
-            "clothing_variation": (
-                "SUBTLE VARIATION (IMPORTANT FOR TEAM PHOTOS): Even though a specific outfit style is requested, "
-                "introduce SUBTLE NATURAL VARIATIONS in the details — as if each person bought a similar style "
-                "from a DIFFERENT BRAND or collection. Vary these elements randomly: "
-                "(1) Inner layer color — e.g., white, light gray, cream, pale blue t-shirt or shirt underneath. "
-                "(2) Fabric texture — e.g., slightly different knit pattern, weave, or material finish. "
-                "(3) Fit and silhouette — e.g., slightly more relaxed vs. more tailored cut. "
-                "(4) Minor design details — e.g., different collar shape, button style, pocket placement, lapel width. "
-                "The overall CATEGORY and COLOR FAMILY must remain the same (e.g., 'gray blazer' stays a gray blazer), "
-                "but the specific garment should look like a UNIQUE piece, not an identical uniform. "
-                "This ensures that when multiple team members choose the same outfit option, "
-                "they look coordinated but NOT like they are wearing the exact same clothes."
+        },
+        "MANDATORY_CLOTHING": {
+            "priority": "★★★ MUST FOLLOW EXACTLY — DO NOT SUBSTITUTE WITH DIFFERENT CLOTHING ★★★",
+            "instruction": outfit_text,
+            "constraint": "No text, logos, or brand names — all garments plain and logo-free",
+            "strict_rule": (
+                "You MUST dress the person in EXACTLY the clothing described above. "
+                "Do NOT substitute with a different type of garment. "
+                "If the instruction says 'WHITE BLOUSE', the output MUST show a WHITE BLOUSE — "
+                "NOT a knit sweater, NOT a t-shirt, NOT any other garment. "
+                "If the instruction says 'BLACK BLAZER', the output MUST show a BLACK BLAZER. "
+                "Substituting the specified clothing with a different garment is a CRITICAL FAILURE."
+            ),
+        },
+        "MANDATORY_EXPRESSION": {
+            "priority": "★★★ MUST FOLLOW EXACTLY — DO NOT SUBSTITUTE WITH DIFFERENT EXPRESSION ★★★",
+            "instruction": expr_text if expr_text else "gentle warm closed-mouth smile",
+            "strict_rule": (
+                "Apply EXACTLY the expression described above. "
+                "If 'neutral/no smile' is specified, there must be ZERO smile — stone neutral. "
+                "If 'slight smile/Mona Lisa' is specified, only mouth corners move 2-3mm with NO teeth visible. "
+                "If 'smile with teeth' is specified, teeth must be visible. "
+                "Do NOT default to a generic smile. Do NOT show teeth unless explicitly requested. "
+                "Applying a different expression than requested is a CRITICAL FAILURE."
             ),
         },
         "scene": {
