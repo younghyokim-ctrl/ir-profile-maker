@@ -535,6 +535,34 @@ EXPRESSIONS = {
             "in the expression, the entire result is REJECTED. The expression must be stone-neutral. "
         ),
     },
+    "slight_smile": {
+        "name_ko": "살짝 미소",
+        "desc": "입꼬리만 은은하게 — 이빨 안 보이는 모나리자 미소",
+        "icon": "🙂",
+        "prompt": (
+            "EXPRESSION (SUBTLE MONA LISA SMILE — STRICT CONSTRAINTS): "
+            "The person has a VERY SUBTLE, BARELY PERCEPTIBLE closed-mouth smile — often called a "
+            "'Mona Lisa smile' or 'archaic smile'. "
+            "MOUTH: The lips are FULLY CLOSED with NO teeth visible. The corners of the mouth are "
+            "turned upward by ONLY 2-3 millimeters — just enough to suggest a hint of a smile. "
+            "The lips remain relaxed and natural, NOT pressed together tightly. "
+            "EYES (ABSOLUTE ZERO CHANGE): The eyes must remain COMPLETELY UNCHANGED from their "
+            "natural resting state. NO eye-smile, NO squinting, NO warmth in the eyes, NO raised "
+            "cheeks pushing into the eye area, NO crow's feet, NO Duchenne markers. The eyes are "
+            "calm, steady, and direct — identical to a neutral expression. "
+            "CHEEKS: Do NOT raise the cheeks. The zygomatic muscles should NOT visibly engage. "
+            "No apple cheeks, no cheek bunching. The smile is ONLY in the mouth corners. "
+            "OVERALL: The expression should be enigmatic and composed — as if the person has a "
+            "private thought that amuses them slightly, but their eyes and upper face reveal nothing. "
+            "Think of the Mona Lisa painting: the smile exists only at the corners of the lips. "
+            "CRITICAL FAILURE CONDITIONS: "
+            "- If ANY teeth are visible → REJECT "
+            "- If the eyes show ANY warmth or squinting → REJECT "
+            "- If the cheeks are visibly raised → REJECT "
+            "- If the smile appears as a full closed-mouth smile (too wide) → REJECT "
+            "The result should be so subtle that viewers might debate whether the person is smiling at all. "
+        ),
+    },
     "smile": {
         "name_ko": "웃는 표정",
         "desc": "이빨이 보이는 자연스러운 밝은 미소",
